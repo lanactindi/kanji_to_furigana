@@ -5,11 +5,9 @@ function getSelectedNode() {
 
   if (window.getSelection) {
     selectedText = window.getSelection();
-  }
-  else if (document.getSelection) {
+  } else if (document.getSelection) {
     selectedText = document.getSelection();
-  }
-  else if (document.selection) {
+  } else if (document.selection) {
     selectedText = document.selection.createRange();
   } else return "";
 
@@ -45,24 +43,22 @@ function renderTranslateButton(selectionTextRange) {
 }
 
 bodyDOM.addEventListener("mouseup", () => {
-    const buttonIcon = document.querySelector(
-        "div#kanji-to-furigana-translator"
-      );
-    if (buttonIcon) buttonIcon.remove();
+  const buttonIcon = document.querySelector("div#kanji-to-furigana-translator");
+  if (buttonIcon) buttonIcon.remove();
 
-    selectionText = getSelectedNode().toString();
+  selectionText = getSelectedNode().toString();
 
-    if (selectionText.length > 0) {
+  if (selectionText.length > 0) {
     const selectionTextRange = getRangeSectionText();
 
     renderTranslateButton(selectionTextRange, selectionText);
 
     setTimeout(() => {
-        const buttonWrapper = document.querySelector(
+      const buttonWrapper = document.querySelector(
         "div#kanji-to-furigana-translator"
-        );
+      );
 
-        if (buttonWrapper) buttonWrapper.remove();
+      if (buttonWrapper) buttonWrapper.remove();
     }, 3000);
-    }
+  }
 });
