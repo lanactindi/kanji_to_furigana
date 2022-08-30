@@ -1,0 +1,12 @@
+{
+  "name": "Kanji to furigana",
+  "description": "翻訳拡張",
+  "version": "1.0",
+  "manifest_version": 3,
+  "content_scripts": [
+    {
+      "matches": ["https://*/*"],
+      "js": ["js/content-script.js"]
+    }
+  ]
+}
