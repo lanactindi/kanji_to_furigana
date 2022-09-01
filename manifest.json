@@ -8,5 +8,11 @@
       "matches": ["https://*/*"],
       "js": ["js/content-script.js"]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["html/popup.html"]
+    }
   ]
 }
