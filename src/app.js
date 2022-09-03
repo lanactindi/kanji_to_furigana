@@ -1,1 +1,1 @@
-import * as content from '../js/content-script';
+import * as content from '../content-script';
