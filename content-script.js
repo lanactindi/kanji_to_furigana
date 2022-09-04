@@ -1,17 +1,6 @@
 let selectionText = "";
 const bodyDOM = document.querySelector("body");
-
-function getSelectedText() {
-  let selectedText = "";
-  if (window.getSelection) {
-    selectedText = window.getSelection().toString();
-  } else if (document.getSelection) {
-    selectedText = document.getSelection().toString();
-  } else if (document.selection) {
-    selectedText = document.selection.createRange().text;
-  } else return "";
-  return selectedText;
-}
+const japaneseRegex = /[\u3000-\u303f]|[\u3040-\u309f]|[\u30a0-\u30ff]|[\uff00-\uffef]|[\u4e00-\u9faf]|[\u3400-\u4dbf]/g;
 
 function getSelectedTextNode() {
   let selectedText = "";
@@ -19,8 +8,6 @@ function getSelectedTextNode() {
     selectedText = window.getSelection();
   } else if (document.getSelection) {
     selectedText = document.getSelection();
-  } else if (document.selection) {
-    selectedText = document.selection.createRange();
   } else return "";
   return selectedText;
 }
@@ -65,6 +52,7 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
           );
           buttonWrapper.remove();
           buttonIcon.remove();
+          handlingTabs();
         });
       }
     });
@@ -80,42 +68,86 @@ function renderButtonResultTranslator(
   buttonResult.id = "kanji-to-furigana-result";
   const buttonContainer = document.createElement("div");
   buttonContainer.classList.add("translator-result-ext-container");
-  console.log(result);
   const dumpElement = document.createElement("div");
   dumpElement.innerHTML = result["fulltext"];
   wordSpell = dumpElement.getElementsByClassName("pw")[0].innerHTML;
-  wordMeanings = Array.from(dumpElement.getElementsByClassName("fw")).map(
-    (e) => e.innerHTML[0] == '▪' ? e.innerHTML.slice(1) : e.innerHTML
+  wordMeanings = Array.from(dumpElement.getElementsByClassName("fw")).map((e) =>
+    e.innerHTML[0] == "▪" ? e.innerHTML.slice(1) : e.innerHTML
   );
-  console.log(wordMeanings)
+  let chinese_vietnamese_meaning, kunyomi_reading, onyomi_reading, componentElement, meanings;
+  let component = '';
+  meanings = Array.from(dumpElement.querySelectorAll("div.mdl"));
+  kanjiMeanings = Array.from(dumpElement.getElementsByClassName("mdl"));
+  chinese_vietnamese_meaning = kanjiMeanings[0].innerHTML;
+  let kanji = chinese_vietnamese_meaning.match(japaneseRegex)[0];
+  kunyomi_reading = kanjiMeanings[1].innerHTML;
+  onyomi_reading = kanjiMeanings[2].innerHTML;
+  componentElement = dumpElement.getElementsByClassName("kc")[0];
+  let parentElement = kanjiMeanings[0].parentNode;
+  if(parentElement && componentElement && parentElement.contains(componentElement)){
+    component = componentElement.innerHTML;
+  }
   buttonContainer.innerHTML = `
   <div class="popup_rect">
   <div id="popup_tabs">
     <div class="popup_tab_type">
-      <div id="tab_vocabulary" class="tab_type tab_vocabulary tab_active"> Từ vựng </div>
-      <div id="tab_kanji" class="tab_type tab_kanji"> Kanji</div>
+      <div id="tab_vocabulary" data-tab="vocabulary" class="tab_type tab_vocabulary tab_active"> Từ vựng </div>
+      <div id="tab_kanji" data-tab="kanji" class="tab_type tab_kanji"> Kanji</div>
     </div>
-    <div class="selection_bubble_vocabulary" id="selection_bubble_vocabulary"> <span id="selection_bubble_close" align="right"
-        alt="Đóng"></span> </div>
-    <div class="selection_bubble_content">
+    <div class="selection_bubble_vocabulary" id="selection_bubble_vocabulary"> <span id="selection_bubble_close"
+        align="right" alt="Đóng"></span> </div>
+    <div id="vocabulary" class="selection_bubble_content active">
       <div id="dic_bubble_synonyms">
         <div class="vocabulary_detail_content_pl">
           <div class="vocabulary_entry">
             <div class="vocabulary_searched_pl">${result["word"]}</div>
-            <div class="han_viet"></div>
+            <div class="chinese_vietnamese_phonetic"></div>
             <div class="vocabulary_search_phonetic">${wordSpell}</div>
             <div class="vocabulary_mean_group">
-             ${wordMeanings.map((word) => {
-               return `<div class="vocabulary_meaning">${word}</div>`;
-             }).join('')}
+              ${wordMeanings
+              .map((word) => {
+              return `<div class="vocabulary_meaning">${word}</div>`;
+              })
+              .join("")}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="kanji" class="selection_bubble_content">
+      <div id="dic_bubble_synonyms">
+        <div class="vocabulary_detail_content_pl">
+          <div class="kanji_entry">
+            ${result["word"]
+            .split("")
+            .map((kanji, i) => {
+            if (i == 0)
+            return `<div class="kanji_searched_pl active">${kanji}</div>`;
+            return `<div class="kanji_searched_pl">${kanji}</div>`;
+            })
+            .join("")}
+          </div>
+          <div class="kanji_content">
+            <div id="draw"></div>
+            <div class="kanji_chinese_vietnamese_meaning">${chinese_vietnamese_meaning.split(kanji)[1].slice(3)}</div>
+            <div class="kunyomi">Kun(訓): ${kunyomi_reading}</div>
+            <div class="onyomi">On(音): ${onyomi_reading}</div>
+            <div class="component">Bộ: ${component}</div>
+            <div class="vocabulary_mean_group">Nghĩa:
+              ${meanings
+              .map((meaning) => {
+              return `<div class="vocabulary_meaning">${meaning.innerHTML}</div>`;
+              }).join("")}
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
   `;
+  var dmak = new Dmak(kanji, {
+    'element' : "draw"
+  });
   buttonResult.appendChild(buttonContainer);
   const top = selectionTextRange.top - selectionTextRange.height - 6 + "px";
   const left =
@@ -129,6 +161,43 @@ function renderButtonResultTranslator(
   buttonResult.style.left = left;
   bodyDOM.appendChild(buttonResult);
 }
+function handlingTabs() {
+  (tabs = document.querySelector(".popup_tab_type")),
+    (tab = document.querySelectorAll("div.kanji_searched_pl")),
+    (contents = document.querySelectorAll(".selection_bubble_content"));
+  tabs.addEventListener("click", function (e) {
+    if (e.target && e.target.nodeName === "DIV") {
+      for (var i = 0; i < tab.length; i++) {
+        tab[i].classList.remove("tab_active");
+      }
+      e.target.classList.toggle("tab_active");
+      for (i = 0; i < contents.length; i++) {
+        contents[i].classList.remove("active");
+      }
+      var tabId = e.target.dataset.tab;
+      document.getElementById(tabId).classList.toggle("active");
+    }
+  });
+}
+
+function handlingMultipleKanjis() {
+  (tabs = document.querySelector(".kanji_entry")),
+    (tab = document.querySelectorAll("div.tab_type")),
+    (contents = document.querySelectorAll(".selection_bubble_content"));
+  tabs.addEventListener("click", function (e) {
+    if (e.target && e.target.nodeName === "DIV") {
+      for (var i = 0; i < tab.length; i++) {
+        tab[i].classList.remove("tab_active");
+      }
+      e.target.classList.toggle("tab_active");
+      for (i = 0; i < contents.length; i++) {
+        contents[i].classList.remove("active");
+      }
+      var tabId = e.target.dataset.tab;
+      document.getElementById(tabId).classList.toggle("active");
+    }
+  });
+}
 
 bodyDOM.addEventListener("mouseup", (event) => {
   const buttonResult = document.querySelector("div#kanji-to-furigana-result");
@@ -136,7 +205,7 @@ bodyDOM.addEventListener("mouseup", (event) => {
     return event.preventDefault();
   }
   if (buttonResult) buttonResult.remove();
-  selectionText = getSelectedText();
+  selectionText = getSelectedTextNode().toString();
   if (selectionText.length > 0) {
     const selectionTextRange = getRangeSectionText();
     renderButtonTranslator(selectionTextRange, selectionText);

@@ -6,14 +6,14 @@
   "content_scripts": [
     {
       "matches": ["https://*/*"],
-      "js": ["content-script.js"],
+      "js": ["content-script.js", "lib/jquery.min.js", "lib/raphael-min.js", "lib/jquery.dmak.js", "lib/dmak.js"],
       "css": ["popup.css"]
     }
   ],
   "web_accessible_resources": [
     {
       "matches": ["<all_urls>"],
-      "resources": ["popup.html"]
+      "resources": ["popup.html", "lib/kanji/*"]
     }
   ]
 }
