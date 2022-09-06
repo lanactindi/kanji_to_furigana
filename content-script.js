@@ -53,6 +53,7 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
           buttonWrapper.remove();
           buttonIcon.remove();
           handlingTabs();
+          handlingMultipleKanjis();
         });
       }
     });
@@ -74,19 +75,6 @@ function renderButtonResultTranslator(
   wordMeanings = Array.from(dumpElement.getElementsByClassName("fw")).map((e) =>
     e.innerHTML[0] == "▪" ? e.innerHTML.slice(1) : e.innerHTML
   );
-  let chinese_vietnamese_meaning, kunyomi_reading, onyomi_reading, componentElement, meanings;
-  let component = '';
-  meanings = Array.from(dumpElement.querySelectorAll("div.mdl"));
-  kanjiMeanings = Array.from(dumpElement.getElementsByClassName("mdl"));
-  chinese_vietnamese_meaning = kanjiMeanings[0].innerHTML;
-  let kanji = chinese_vietnamese_meaning.match(japaneseRegex)[0];
-  kunyomi_reading = kanjiMeanings[1].innerHTML;
-  onyomi_reading = kanjiMeanings[2].innerHTML;
-  componentElement = dumpElement.getElementsByClassName("kc")[0];
-  let parentElement = kanjiMeanings[0].parentNode;
-  if(parentElement && componentElement && parentElement.contains(componentElement)){
-    component = componentElement.innerHTML;
-  }
   buttonContainer.innerHTML = `
   <div class="popup_rect">
   <div id="popup_tabs">
@@ -122,32 +110,24 @@ function renderButtonResultTranslator(
             .split("")
             .map((kanji, i) => {
             if (i == 0)
-            return `<div class="kanji_searched_pl active">${kanji}</div>`;
-            return `<div class="kanji_searched_pl">${kanji}</div>`;
+            return `<div data-tab="${kanji}" class="kanji_searched_pl active">${kanji}</div>`;
+            return `<div data-tab="${kanji}" class="kanji_searched_pl">${kanji}</div>`;
             })
             .join("")}
           </div>
-          <div class="kanji_content">
-            <div id="draw"></div>
-            <div class="kanji_chinese_vietnamese_meaning">${chinese_vietnamese_meaning.split(kanji)[1].slice(3)}</div>
-            <div class="kunyomi">Kun(訓): ${kunyomi_reading}</div>
-            <div class="onyomi">On(音): ${onyomi_reading}</div>
-            <div class="component">Bộ: ${component}</div>
-            <div class="vocabulary_mean_group">Nghĩa:
-              ${meanings
-              .map((meaning) => {
-              return `<div class="vocabulary_meaning">${meaning.innerHTML}</div>`;
-              }).join("")}
-            </div>
-          </div>
+          ${result["word"].split("").map((kanji, index) => {
+            return renderKanjiContent(dumpElement, kanji, index)
+          })}
         </div>
       </div>
     </div>
   </div>
   `;
-  var dmak = new Dmak(kanji, {
-    'element' : "draw"
-  });
+  result["word"].split("").map((kanji) => {
+    new Dmak(kanji, {
+      'element' : "draw"
+    });
+  })
   buttonResult.appendChild(buttonContainer);
   const top = selectionTextRange.top - selectionTextRange.height - 6 + "px";
   const left =
@@ -161,10 +141,44 @@ function renderButtonResultTranslator(
   buttonResult.style.left = left;
   bodyDOM.appendChild(buttonResult);
 }
+
+function renderKanjiContent(dumpElement, kanji, kanjiNumber){
+  let chinese_vietnamese_meaning, kunyomi_reading, onyomi_reading, componentElement;
+  let component = '';
+  kanjiInformations = Array.from(dumpElement.querySelectorAll("span.mdl"));
+  const index = kanjiInformations.findIndex(info => info.innerHTML.includes(kanji))
+  chinese_vietnamese_meaning = kanjiInformations[index].innerHTML;
+  kunyomi_reading = kanjiInformations[index+1].innerHTML;
+  onyomi_reading = kanjiInformations[index+2].innerHTML;
+  let parentElement = kanjiInformations[index].closest(".stc");
+  componentElement = parentElement.querySelector(".kc");
+  if(componentElement){
+    component = componentElement.innerHTML;
+  }
+  meaningsSpanElements = Array.from(dumpElement.querySelectorAll("span.kt")).filter(element => element.innerHTML === "Nghĩa:");
+  let currentKanjiMeaningElements = Array.from(meaningsSpanElements[kanjiNumber].parentNode.querySelectorAll("div.mdl"));
+  let html = `
+    <div id="${kanji}" class="kanji_content ${kanjiNumber == 0 ? "active" : ""}">
+      <div id="draw ${kanjiNumber == 0 ? 'active' : ''}"></div>
+      <div class="kanji_chinese_vietnamese_meaning">${chinese_vietnamese_meaning.split(kanji)[1].slice(3)}</div>
+      <div class="kunyomi">Kun(訓): ${kunyomi_reading}</div>
+      <div class="onyomi">On(音): ${onyomi_reading}</div>
+      <div class="component">Bộ: ${component}</div>
+      <div class="vocabulary_mean_group">Nghĩa:
+        ${currentKanjiMeaningElements
+        .map((meaning) => {
+        return `<div class="vocabulary_meaning">${meaning.innerHTML}</div>`;
+        }).join("")}
+      </div>
+    </div>
+  `
+  return html;
+}
+
 function handlingTabs() {
-  (tabs = document.querySelector(".popup_tab_type")),
-    (tab = document.querySelectorAll("div.kanji_searched_pl")),
-    (contents = document.querySelectorAll(".selection_bubble_content"));
+  let tabs = document.querySelector(".popup_tab_type")
+  let tab = document.querySelectorAll("div.tab_type")
+  let contents = document.querySelectorAll(".selection_bubble_content")
   tabs.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "DIV") {
       for (var i = 0; i < tab.length; i++) {
@@ -181,15 +195,15 @@ function handlingTabs() {
 }
 
 function handlingMultipleKanjis() {
-  (tabs = document.querySelector(".kanji_entry")),
-    (tab = document.querySelectorAll("div.tab_type")),
-    (contents = document.querySelectorAll(".selection_bubble_content"));
+  let tabs = document.querySelector(".kanji_entry");
+  let tab = document.querySelectorAll("div.kanji_searched_pl")
+  let contents = document.querySelectorAll(".kanji_content");
   tabs.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "DIV") {
       for (var i = 0; i < tab.length; i++) {
-        tab[i].classList.remove("tab_active");
+        tab[i].classList.remove("active");
       }
-      e.target.classList.toggle("tab_active");
+      e.target.classList.toggle("active");
       for (i = 0; i < contents.length; i++) {
         contents[i].classList.remove("active");
       }

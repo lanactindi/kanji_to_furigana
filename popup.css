@@ -139,3 +139,15 @@ div#dic_bubble_synonyms {
     display: inline-block;
     float: right;
 }
+.kanji_content.active{
+    display: block;
+}
+.kanji_content {
+    display: none;
+}
+#draw#active{
+    display: block;
+}
+#draw{
+    display: none;
+}
