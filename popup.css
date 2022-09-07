@@ -73,6 +73,10 @@ div#dic_bubble_synonyms {
     clear: both;
     padding-top: 10px;
 }
+.kanji_mean_group {
+    clear: both;
+    padding-top: 10px;
+}
 .vocabulary_meaning {
     font-size: 14px;
     margin-bottom: 4px;
@@ -87,7 +91,7 @@ div#dic_bubble_synonyms {
     border-radius: 3px 0px 0px;
     width: 50%;
 }
-.tab_type {
+.tab_type, .language_type {
     display: inline-block;
     width: 50%;
     height: 32px;
@@ -98,7 +102,7 @@ div#dic_bubble_synonyms {
     border-color: rgb(212, 213, 214);
     border-image: initial;
 }
-.popup_tab_type{
+.popup_tab_type, .popup_language_type {
     display: flex;
 }
 .tab_active {
@@ -135,19 +139,16 @@ div#dic_bubble_synonyms {
 .onyomi{
     padding: 10px 0;
 }
-#draw{
-    display: inline-block;
-    float: right;
-}
 .kanji_content.active{
     display: block;
 }
 .kanji_content {
     display: none;
 }
-#draw#active{
+.draw.active{
     display: block;
+    float: right;
 }
-#draw{
+.draw{
     display: none;
 }
