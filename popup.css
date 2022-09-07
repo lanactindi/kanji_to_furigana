@@ -1,0 +1,154 @@
+.popup_rect {
+    box-shadow: rgba(41, 41, 41, 0.32) 2px 2px 4px 4px;
+    line-height: 24px;
+    border-radius: 5px;
+}
+.popup_rect {
+    z-index: 99999;
+    background-color: rgb(253, 253, 253);
+    width: 500px;
+    color: black;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: normal;
+    box-shadow: rgba(41, 41, 41, 0.32) 2px 2px 4px 4px;
+    border-radius: 2px;
+    padding: 5px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(181, 181, 181);
+    border-image: initial;
+}
+#popup_tabs {
+    text-align: left;
+    padding: 8px;
+}
+.selection_bubble_content {
+    display: none;
+    position: relative;
+    background-color: rgb(238, 238, 238);
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(212, 213, 214);
+    border-image: initial;
+    padding: 12px;
+    border-radius: 0px 3px 3px;
+}
+
+.selection_bubble_content.active {
+    display: block;
+    position: relative;
+    background-color: rgb(238, 238, 238);
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(212, 213, 214);
+    border-image: initial;
+    padding: 12px;
+    border-radius: 0px 3px 3px;
+}
+div#dic_bubble_synonyms {
+    padding-bottom: 40px;
+}
+.vocabulary_searched_pl {
+    color: red;
+    font-weight: 500;
+    font-size: 18px;
+    display: inline;
+    float: left;
+    margin-right: 0.5em;
+}
+.chinese_vietnamese_phonetic {
+    float: left;
+    margin-left: 10px;
+    position: relative;
+    color: grey;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.vocabulary_search_phonetic {
+    clear: both;
+    padding-top: 10px;
+    float: left;
+}
+.vocabulary_mean_group {
+    clear: both;
+    padding-top: 10px;
+}
+.kanji_mean_group {
+    clear: both;
+    padding-top: 10px;
+}
+.vocabulary_meaning {
+    font-size: 14px;
+    margin-bottom: 4px;
+    margin-top: 4px;
+    display: list-item;
+    list-style-position: inside;
+    list-style-type: disc;
+    color: blueviolet;
+    font-weight: 500;
+}
+.tab_vocabulary{
+    border-radius: 3px 0px 0px;
+    width: 50%;
+}
+.tab_type, .language_type {
+    display: inline-block;
+    width: 50%;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(212, 213, 214);
+    border-image: initial;
+}
+.popup_tab_type, .popup_language_type {
+    display: flex;
+}
+.tab_active {
+    background-color: #a527b0;
+    color: white;
+    font-weight: 500;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: rgb(76, 129, 237) !important;
+    border-image: initial !important;
+    width: 50%;
+}
+.kanji_searched_pl{
+    color: red;
+    font-weight: 500;
+    font-size: 18px;
+    display: inline;
+    float: left;
+    margin-right: 0.5em;
+    padding: 5px 10px;
+}
+.kanji_searched_pl.active{
+    border: solid 1px black;
+}
+.kanji_entry {
+    display: inline-block;
+}
+.kanji_chinese_vietnamese_meaning{
+    font-size: 30px;
+}
+.kunyomi{
+    padding: 10px 0;
+}
+.onyomi{
+    padding: 10px 0;
+}
+.kanji_content.active{
+    display: block;
+}
+.kanji_content {
+    display: none;
+}
+.draw.active{
+    display: block;
+    float: right;
+}
+.draw{
+    display: none;
+}
