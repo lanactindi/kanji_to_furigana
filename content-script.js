@@ -297,3 +297,4 @@ bodyDOM.addEventListener("mouseup", (event) => {
     renderButtonTranslator(selectionTextRange, selectionText);
   }
 });
+
