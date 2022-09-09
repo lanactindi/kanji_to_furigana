@@ -247,20 +247,20 @@ function handlingLanguage(dumpElement, selectionText) {
   tabs.addEventListener("click", async function (e) {
     if (e.target && e.target.nodeName === "DIV") {
       const newLanguage = e.target.dataset.tab;
-      for(let i=0; i < tab.length; i++){
+      for (let i = 0; i < tab.length; i++) {
         tab[i].classList.remove("tab_active");
       }
-      e.target.classList.toggle("tab_active")
+      e.target.classList.toggle("tab_active");
       const vocabularyElement = dumpElement.querySelector(`#${newLanguage}`);
-      document.getElementById("vocabulary_mean_group").innerHTML = renderVocabularyMeanings(vocabularyElement)
-      const html = await renderKanjiMeanings(selectionText)
-      console.log(html);
+      document.getElementById("vocabulary_mean_group").innerHTML =
+        renderVocabularyMeanings(vocabularyElement);
+      const html = await renderKanjiMeanings(selectionText);
     }
   });
 }
 
 function renderVocabularyMeanings(element) {
-  wordMeanings = Array.from(element.querySelectorAll('.fw')).map((e) =>
+  wordMeanings = Array.from(element.querySelectorAll(".fw")).map((e) =>
     e.innerHTML[0] == "▪" ? e.innerHTML.slice(1) : e.innerHTML``
   );
   const html = wordMeanings
@@ -271,18 +271,39 @@ function renderVocabularyMeanings(element) {
   return html;
 }
 
-async function renderKanjiMeanings(selectionText){
+async function renderKanjiMeanings(selectionText) {
   const result = await fetch(
     `http://localhost:3000/api/v1/words/${selectionText}/english`
   );
   result.json().then((json) => {
-    console.log(json)
     return json["meanings"]
       .map((meaning) => {
         return `<div class="vocabulary_meaning">${meaning}</div>`;
       })
-      .join("")
+      .join("");
   });
+}
+
+function furigana(japanese, hiragana) {
+  const diffs = Array.from(
+    new diff_match_patch().diff_main(japanese, hiragana)
+  );
+  let html = "",
+    ruby = { furigana: null, text: null };
+  diffs.push([0, ""]);
+  diffs.map((diff) => {
+    if (diff[0] == 0) {
+      if (ruby.furigana || ruby.text) {
+        html += `<ruby>${ruby.text}<rp>(</rp><rt>${ruby.furigana}</rt><rp>)</rp></ruby>`;
+        ruby.furigana = null;
+        ruby.text = null;
+      }
+      html += diff[1];
+    } else {
+      ruby[diff[0] == 1 ? "furigana" : "text"] = diff[1];
+    }
+  });
+  return html;
 }
 
 bodyDOM.addEventListener("mouseup", (event) => {
@@ -296,4 +317,12 @@ bodyDOM.addEventListener("mouseup", (event) => {
     const selectionTextRange = getRangeSectionText();
     renderButtonTranslator(selectionTextRange, selectionText);
   }
+});
+
+chrome.runtime.onMessage.addListener((request) => {
+  let webStr = document.body.outerHTML.replace(
+    request.selectionText,
+    furigana(request.selectionText, request.content)
+  );
+  document.body.outerHTML = webStr;
 });
