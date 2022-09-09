@@ -11,7 +11,8 @@
         "lib/jquery.min.js",
         "lib/raphael-min.js",
         "lib/jquery.dmak.js",
-        "lib/dmak.js"
+        "lib/dmak.js",
+        "lib/diff_match_patch.js"
       ],
       "css": ["popup.css"]
     }
@@ -22,6 +23,6 @@
       "resources": ["popup.html", "lib/kanji/*"]
     }
   ],
-  "permissions": ["activeTab","scripting","contextMenus"],
-  "background": { "service_worker": "background.js" }
+  "permissions": ["activeTab", "scripting", "contextMenus", "storage"],
+  "background": { "service_worker": "background.js", "mode": "module"}
 }
