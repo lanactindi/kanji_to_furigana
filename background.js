@@ -8,7 +8,6 @@ chrome.contextMenus.create({
 
 //add listener for click on self defined menu item
 chrome.contextMenus.onClicked.addListener(async function(clickData){
-  console.log(clickData)
   if (clickData.menuItemId == "OpenSN" && clickData.selectionText) {
     const result = await fetch(
       `http://localhost:3000/api/v1/words/${clickData.selectionText}/furigana`
@@ -16,7 +15,6 @@ chrome.contextMenus.onClicked.addListener(async function(clickData){
     result.json().then((json) => {
       chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         chrome.tabs.sendMessage(tabs[0].id, {content: json["translated"], selectionText: clickData.selectionText}, function(response) {
-          console.log(response);
         });
      });
     });

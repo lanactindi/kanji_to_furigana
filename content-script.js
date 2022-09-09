@@ -255,7 +255,6 @@ function handlingLanguage(dumpElement, selectionText) {
       document.getElementById("vocabulary_mean_group").innerHTML =
         renderVocabularyMeanings(vocabularyElement);
       const html = await renderKanjiMeanings(selectionText);
-      console.log(html);
     }
   });
 }
@@ -277,7 +276,6 @@ async function renderKanjiMeanings(selectionText) {
     `http://localhost:3000/api/v1/words/${selectionText}/english`
   );
   result.json().then((json) => {
-    console.log(json);
     return json["meanings"]
       .map((meaning) => {
         return `<div class="vocabulary_meaning">${meaning}</div>`;
@@ -287,9 +285,12 @@ async function renderKanjiMeanings(selectionText) {
 }
 
 function furigana(japanese, hiragana) {
-  const diffs = Array.from(new diff_match_patch().diff_main(japanese, hiragana));
-  let html = '', ruby = { furigana: null, text: null };
-  diffs.push([0, '']);
+  const diffs = Array.from(
+    new diff_match_patch().diff_main(japanese, hiragana)
+  );
+  let html = "",
+    ruby = { furigana: null, text: null };
+  diffs.push([0, ""]);
   diffs.map((diff) => {
     if (diff[0] == 0) {
       if (ruby.furigana || ruby.text) {
@@ -299,7 +300,7 @@ function furigana(japanese, hiragana) {
       }
       html += diff[1];
     } else {
-      ruby[diff[0] == 1 ? 'furigana' : 'text'] = diff[1];
+      ruby[diff[0] == 1 ? "furigana" : "text"] = diff[1];
     }
   });
   return html;
@@ -319,6 +320,9 @@ bodyDOM.addEventListener("mouseup", (event) => {
 });
 
 chrome.runtime.onMessage.addListener((request) => {
-  let webStr = document.body.outerHTML.replace(request.selectionText, furigana(request.selectionText, request.content))
+  let webStr = document.body.outerHTML.replace(
+    request.selectionText,
+    furigana(request.selectionText, request.content)
+  );
   document.body.outerHTML = webStr;
 });
