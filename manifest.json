@@ -12,7 +12,8 @@
         "lib/raphael-min.js",
         "lib/jquery.dmak.js",
         "lib/dmak.js",
-        "lib/diff_match_patch.js"
+        "lib/diff_match_patch.js",
+        "lib/list.js"
       ],
       "css": ["popup.css"]
     }

@@ -55,6 +55,8 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
           buttonIcon.remove();
           handlingTabs();
           handlingMultipleKanjis(json["tratu"][0]["fields"]["word"]);
+          handlingComment();
+          list_comments();
         });
       }
     });
@@ -74,8 +76,10 @@ function renderButtonResultTranslator(
   const dumpElement = document.createElement("div");
   dumpElement.innerHTML = result["fulltext"];
   wordSpell = dumpElement.getElementsByClassName("pw")[0].innerHTML;
+  const vocabulary = result["word"];
   const vocabularyElement = dumpElement.querySelector(`#${language}`);
   buttonContainer.innerHTML = `
+  <meta name="google-signin-client_id" content="452813366788-67158ct37naeftogqtqchvb5kc6njfql.apps.googleusercontent.com">
   <div class="popup_rect">
     <div id="popup_tabs">
       <div class="popup_tab_type">
@@ -88,7 +92,7 @@ function renderButtonResultTranslator(
         <div id="dic_bubble_synonyms">
           <div class="vocabulary_detail_content_pl">
             <div class="vocabulary_entry">
-              <div class="vocabulary_searched_pl">${result["word"]}</div>
+              <div class="vocabulary_searched_pl">${vocabulary}</div>
               <div class="chinese_vietnamese_phonetic"></div>
               <div class="vocabulary_search_phonetic">${wordSpell}</div>
               <div id="vocabulary_mean_group" class="vocabulary_mean_group">
@@ -97,6 +101,7 @@ function renderButtonResultTranslator(
             </div>
           </div>
         </div>
+        <button id="vocabulary_comment">Bình luận</button>
       </div>
       <div id="kanji" class="selection_bubble_content">
         <div id="dic_bubble_synonyms">
@@ -127,6 +132,22 @@ function renderButtonResultTranslator(
       }"> English</div>
     </div>
 </div>
+<div class="g-signin2" data-onsuccess="onSignIn"></div>
+<div id="comment_section" class="popup_comment">
+  <div class="selection_bubble_content active">
+      <input id="comment_user" placeholder="Tên" type="text"/>
+      <div id="comment_section_part">
+        <textarea placeholder="Nội dung" id="comment_input" type="text"></textarea>
+        <button id="comment_btn">Bình luận</button>
+      </div>
+    <div><h3>Bình luận</h3></div>
+    <div id="comments_div">
+      <ul class="list" id="comments_list">
+      </ul>
+      <ul class="pagination"></ul>
+    </div>
+  </div>
+</div>
   `;
   buttonResult.appendChild(buttonContainer);
   const top = selectionTextRange.top - selectionTextRange.height - 6 + "px";
@@ -141,6 +162,7 @@ function renderButtonResultTranslator(
   buttonResult.style.left = left;
   bodyDOM.appendChild(buttonResult);
   handlingLanguage(dumpElement, selectionText);
+  comment_on_vocabulary();
 }
 
 function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
@@ -241,6 +263,16 @@ function handlingMultipleKanjis(kanjis) {
   });
 }
 
+function handlingComment() {
+  const vocabulary_comment_btn = document.getElementById("vocabulary_comment");
+  const comment_section = document.getElementById("comment_section");
+  vocabulary_comment_btn.addEventListener("click", (e) => {
+    if (comment_section.classList.contains("active")) {
+      return comment_section.classList.remove("active");
+    }
+    comment_section.classList.toggle("active");
+  });
+}
 function handlingLanguage(dumpElement, selectionText) {
   let tabs = document.querySelector(".popup_language_type");
   let tab = document.querySelectorAll("div.language_type");
@@ -326,3 +358,63 @@ chrome.runtime.onMessage.addListener((request) => {
   );
   document.body.outerHTML = webStr;
 });
+function onSignIn(googleUser) {
+  var profile = googleUser.getBasicProfile();
+  console.log("ID: " + profile.getId()); // Do not send to your backend! Use an ID token instead.
+  console.log("Name: " + profile.getName());
+  console.log("Image URL: " + profile.getImageUrl());
+  console.log("Email: " + profile.getEmail()); // This is null if the 'email' scope is not present.
+}
+
+function comment_on_vocabulary() {
+  const comment_btn = document.getElementById("comment_btn");
+  comment_btn.addEventListener("click", async () => {
+    const vocabulary = document.getElementsByClassName(
+      "vocabulary_searched_pl"
+    )[0].innerHTML;
+    const content = document.getElementById("comment_input").value;
+    const user = document.getElementById("comment_user").value;
+    const response = await fetch(
+      `http://localhost:3000/api/v1/vocabularies/${vocabulary}/comments`,
+      {
+        method: "POST",
+        mode: "cors", // no-cors, *cors, same-origin
+        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: "same-origin", // include, *same-origin, omit
+        headers: {
+          "Content-Type": "application/json",
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: "follow", // manual, *follow, error
+        referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify({ content, user }),
+      }
+    );
+    response.json().then((json) => {
+      document.getElementById(
+        "comments_list"
+      ).innerHTML += `<li><span>${json["user"]}:</span>${json["content"]}</li>`;
+    });
+  });
+}
+
+async function list_comments() {
+  const result = await fetch(
+    `http://localhost:3000/api/v1/vocabularies/${vocabulary}/comments`
+  );
+  result.json().then((json) => {
+    let comments_list = document.getElementById("comments_list");
+    const comments = json
+      .map((comment) => {
+        return `<li><h3 class="username">${comment.user}:</h3><p class="comment_content">${comment.content}</p></li>`;
+      })
+      .join("");
+    comments_list.innerHTML = comments;
+    var options = {
+      valueNames: ["username", "comment_content"],
+      page: 3,
+      pagination: true,
+    };
+    new List("comments_div", options);
+  });
+}
