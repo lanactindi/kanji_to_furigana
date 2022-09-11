@@ -10,7 +10,8 @@ class Api::V1::Vocabularies::CommentsController < ApplicationController
   end
 
   def index
-    comments = Comment.all
+    vocabulary = params[:vocabulary]
+    comments = Comment.vocabulary(vocabulary)
     render json: comments
   end
 end

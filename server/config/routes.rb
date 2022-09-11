@@ -8,6 +8,10 @@ Rails.application.routes.draw do
         post '/:vocabulary/comments', to: "comments#create"
         get '/:vocabulary/comments', to: "comments#index"
       end
+      namespace 'kanjis' do
+        post '/:kanji/comments', to: "comments#create"
+        get '/:kanji/comments', to: "comments#index"
+      end
     end
   end
 end
