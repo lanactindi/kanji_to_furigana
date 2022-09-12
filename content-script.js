@@ -3,7 +3,7 @@ let resultVocabulary = "";
 const bodyDOM = document.querySelector("body");
 const japaneseRegex =
   /[\u3000-\u303f]|[\u3040-\u309f]|[\u30a0-\u30ff]|[\uff00-\uffef]|[\u4e00-\u9faf]|[\u3400-\u4dbf]/g;
-let globalLanguage = '';
+let globalLanguage = "";
 function getSelectedTextNode() {
   let selectedText = "";
   if (window.getSelection) {
@@ -40,6 +40,7 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
   buttonWrapper.style.top = top;
   buttonWrapper.style.left = left;
   bodyDOM.appendChild(buttonWrapper);
+  const dumpElement = document.createElement("div");
   if (buttonWrapper) {
     buttonWrapper.addEventListener("click", async () => {
       if (selectionText.length > 0) {
@@ -47,16 +48,19 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
           `http://localhost:3000/api/v1/words/${selectionText}/vietnamese`
         );
         result.json().then((json) => {
+          dumpElement.innerHTML = json["tratu"][0]["fields"]["fulltext"];
+          const vocabulary = json["tratu"][0]["fields"]["word"];
           renderButtonResultTranslator(
             selectionTextRange,
             selectionText,
-            json["tratu"][0]["fields"]
+            dumpElement,
+            vocabulary
           );
           buttonWrapper.remove();
           buttonIcon.remove();
           handlingTabs();
-          handlingMultipleKanjis(json["tratu"][0]["fields"]["word"]);
           handlingComment();
+          handlingMultipleKanjis(dumpElement, json["tratu"][0]["fields"]["word"]);
         });
       }
     });
@@ -66,7 +70,8 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
 function renderButtonResultTranslator(
   selectionTextRange,
   selectionText,
-  result,
+  dumpElement,
+  vocabulary,
   language = "jv"
 ) {
   globalLanguage = "jv";
@@ -74,10 +79,7 @@ function renderButtonResultTranslator(
   buttonResult.id = "kanji-to-furigana-result";
   const buttonContainer = document.createElement("div");
   buttonContainer.classList.add("translator-result-ext-container");
-  const dumpElement = document.createElement("div");
-  dumpElement.innerHTML = result["fulltext"];
   wordSpell = dumpElement.getElementsByClassName("pw")[0].innerHTML;
-  const vocabulary = result["word"];
   resultVocabulary = vocabulary;
   const vocabularyElement = dumpElement.querySelector(`#${language}`);
   buttonContainer.innerHTML = `
@@ -103,13 +105,13 @@ function renderButtonResultTranslator(
             </div>
           </div>
         </div>
-        <button id="vocabulary_comment" class="active">Bình luận</button>
+        <button id="vocabulary_comment" class="active">Comment</button>
       </div>
       <div id="kanji" class="selection_bubble_content">
         <div id="dic_bubble_synonyms">
           <div class="vocabulary_detail_content_pl">
             <div class="kanji_entry">
-              ${result["word"]
+              ${vocabulary
                 .split("")
                 .map((kanji, i) => {
                   if (i == 0)
@@ -119,13 +121,13 @@ function renderButtonResultTranslator(
                 .join("")}
             </div>
             <div id="kanji_meanings">
-              ${result["word"].split("").map((kanji, index) => {
+              ${vocabulary.split("").map((kanji, index) => {
                 return renderKanjiContent(dumpElement, kanji, index);
-              })}
+              }).join("")}
             </div>
           </div>
         </div>
-        <button id="kanji_comment">Bình luận</button>
+        <button id="kanji_comment">Comment</button>
       </div>
     </div>
     <div id="language_tabs" class="popup_language_type">
@@ -140,13 +142,13 @@ function renderButtonResultTranslator(
 <div class="g-signin2" data-onsuccess="onSignIn"></div>
 <div id="comment_section" class="popup_comment">
   <div class="comment_section_content active">
-      <input id="comment_user" placeholder="Tên" type="text"/>
+      <input id="comment_user" placeholder="Name" type="text"/>
       <div id="comment_section_part">
-        <textarea placeholder="Nội dung" id="comment_input" type="text"></textarea>
-        <button class="kanji_comment_btn">Bình luận</button>
-        <button class="vocabulary_comment_btn active">Bình luận</button>
+        <textarea placeholder="Content" id="comment_input" type="text"></textarea>
+        <button class="kanji_comment_btn">Comment</button>
+        <button class="vocabulary_comment_btn active">Comment</button>
       </div>
-    <div><h3>Bình luận</h3></div>
+    <div><h3>Comment</h3></div>
     <div id="comments_div">
       <ul class="list" id="comments_list">
       </ul>
@@ -173,10 +175,7 @@ function renderButtonResultTranslator(
 }
 
 function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
-  let chineseVietnameseMeaning,
-    kunyomiReading,
-    onyomiReading,
-    componentElement;
+  let chineseVietnameseMeaning, kunyomiReading, onyomiReading, componentElement;
   let component = "";
   kanjiInformations = Array.from(dumpElement.querySelectorAll("span.mdl"));
   const index = kanjiInformations.findIndex((info) =>
@@ -227,8 +226,11 @@ function handlingTabs() {
   let contents = document.querySelectorAll(".selection_bubble_content");
   let kanjiCommentBtn = document.getElementById("kanji_comment");
   let vocabularyCommentBtn = document.getElementById("vocabulary_comment");
-  let commentSectionKanjiCommentBtn = document.getElementsByClassName("kanji_comment_btn")[0];
-  let commentSectionVocabularyCommentBtn = document.getElementsByClassName("vocabulary_comment_btn")[0];
+  let commentSectionKanjiCommentBtn =
+    document.getElementsByClassName("kanji_comment_btn")[0];
+  let commentSectionVocabularyCommentBtn = document.getElementsByClassName(
+    "vocabulary_comment_btn"
+  )[0];
   tabs.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "DIV") {
       for (var i = 0; i < tab.length; i++) {
@@ -244,18 +246,18 @@ function handlingTabs() {
       document.getElementById(tabId).classList.toggle("active");
       commentSectionKanjiCommentBtn.classList.remove("active");
       commentSectionVocabularyCommentBtn.classList.remove("active");
-      document.getElementsByClassName(`${tabId}_comment_btn`)[0].classList.toggle("active");
+      document
+        .getElementsByClassName(`${tabId}_comment_btn`)[0]
+        .classList.toggle("active");
       document.getElementById(`${tabId}_comment`).classList.toggle("active");
       resetPagination();
-      if(tabId == "vocabulary")
-        listComments("vocabularies");
-      else
-        listComments("kanjis");
+      if (tabId == "vocabulary") listComments("vocabularies");
+      else listComments("kanjis");
     }
   });
 }
 
-function handlingMultipleKanjis(kanjis) {
+function handlingMultipleKanjis(dumpElement, kanjis) {
   let tabs = document.querySelector(".kanji_entry");
   tabs.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "DIV") {
@@ -281,14 +283,36 @@ function handlingMultipleKanjis(kanjis) {
       new Dmak(kanji, {
         element: `draw-${tabId}`,
       });
-      let currentKanji = document.querySelector(".kanji_searched_pl.active").innerHTML;
+      let currentKanji = document.querySelector(
+        ".kanji_searched_pl.active"
+      ).innerHTML;
       resetPagination();
       listComments("kanjis");
-      if(globalLanguage == 'je'){
-        renderKanjiMeanings(currentKanji).then(html => {
-          document.querySelector(`#${currentKanji} > #kanji_mean_group`).innerHTML = `Meaning: ${html}`;
-        })
-      }  
+      if(globalLanguage == "jv"){
+        document.getElementById(
+          "kanji_meanings"
+        ).innerHTML = `${renderKanjiContent(dumpElement, currentKanji, result.indexOf(currentKanji))}`;
+        contents = document.querySelectorAll(".kanji_content");
+        for (i = 0; i < contents.length; i++) {
+          contents[i].classList.remove("active");
+        }
+        document.querySelector(`#${currentKanji}`).classList.toggle("active");
+      }
+      else if (globalLanguage == "je") {
+        getKanjiMeanings(currentKanji).then((json) => {
+          document.querySelector(
+            `#${currentKanji} > .kanji_chinese_vietnamese_meaning`
+          ).innerHTML = json["heisig_en"].toUpperCase();
+          document.querySelector(`#${currentKanji} > .component`).remove();
+          document.querySelector(
+            `#${currentKanji} > #kanji_mean_group`
+          ).innerHTML = `Meaning: ${json["meanings"]
+            .map((meaning) => {
+              return `<div class="vocabulary_meaning">${meaning}</div>`;
+            })
+            .join("")}`;
+        });
+      }
     }
   });
 }
@@ -305,21 +329,23 @@ function handlingComment() {
     listComments("vocabularies");
     commentSection.classList.toggle("active");
   });
-  kanjiCommentBtn.addEventListener("click", (e)=> {
-    if (commentSection.classList.contains("active")){
+  kanjiCommentBtn.addEventListener("click", (e) => {
+    if (commentSection.classList.contains("active")) {
       return commentSection.classList.remove("active");
     }
     resetPagination();
     listComments("kanjis");
     commentSection.classList.toggle("active");
-  })
+  });
 }
 function handlingLanguage(dumpElement) {
   let tabs = document.querySelector(".popup_language_type");
   let tab = document.querySelectorAll("div.language_type");
   tabs.addEventListener("click", async function (e) {
     if (e.target && e.target.nodeName === "DIV") {
-      let currentKanji = document.querySelector(".kanji_searched_pl.active").innerHTML;
+      let currentKanji = document.querySelector(
+        ".kanji_searched_pl.active"
+      ).innerHTML;
       const newLanguage = e.target.dataset.tab;
       globalLanguage = newLanguage;
       for (let i = 0; i < tab.length; i++) {
@@ -329,15 +355,35 @@ function handlingLanguage(dumpElement) {
       const vocabularyElement = dumpElement.querySelector(`#${newLanguage}`);
       document.getElementById("vocabulary_mean_group").innerHTML =
         renderVocabularyMeanings(vocabularyElement);
-      if(globalLanguage == "jv"){
-        document.getElementById("kanji_meanings").innerHTML =  `${resultVocabulary.split("").map((kanji, index) => {
-          return renderKanjiContent(dumpElement, kanji, index);
-        }).join("")}`
+      if (globalLanguage == "jv") {
+        document.getElementById(
+          "kanji_meanings"
+        ).innerHTML = `${resultVocabulary
+          .split("")
+          .map((kanji, index) => {
+            return renderKanjiContent(dumpElement, kanji, index);
+          })
+          .join("")}`;
+        contents = document.querySelectorAll(".kanji_content");
+        for (i = 0; i < contents.length; i++) {
+          contents[i].classList.remove("active");
+        }
+        document.querySelector(`#${currentKanji}`).classList.toggle('active');
+      } else {
+        getKanjiMeanings(currentKanji).then((json) => {
+          document.querySelector(
+            `#${currentKanji} > .kanji_chinese_vietnamese_meaning`
+          ).innerHTML = json["heisig_en"].toUpperCase();
+          document.querySelector(`#${currentKanji} > .component`).remove();
+          document.querySelector(
+            `#${currentKanji} > #kanji_mean_group`
+          ).innerHTML = `Meaning: ${json["meanings"]
+            .map((meaning) => {
+              return `<div class="vocabulary_meaning">${meaning}</div>`;
+            })
+            .join("")}`;
+        });
       }
-      else {
-        renderKanjiMeanings(currentKanji).then(html => {
-        document.querySelector(`#${currentKanji} > #kanji_mean_group`).innerHTML = `Meaning: ${html}`;
-      })}
     }
   });
 }
@@ -354,17 +400,11 @@ function renderVocabularyMeanings(element) {
   return html;
 }
 
-async function renderKanjiMeanings(kanji) {
+async function getKanjiMeanings(kanji) {
   const result = await fetch(
     `http://localhost:3000/api/v1/words/${kanji}/english`
   );
-  return result.json().then((json) => {
-    return json["meanings"]
-      .map((meaning) => {
-        return `<div class="vocabulary_meaning">${meaning}</div>`;
-      })
-      .join("");
-  });
+  return result.json();
 }
 
 function furigana(japanese, hiragana) {
@@ -411,9 +451,13 @@ chrome.runtime.onMessage.addListener((request) => {
 });
 
 function commentOnVocabulary() {
-  const commentBtn = document.getElementsByClassName("vocabulary_comment_btn")[0];
+  const commentBtn = document.getElementsByClassName(
+    "vocabulary_comment_btn"
+  )[0];
   commentBtn.addEventListener("click", async () => {
-    const vocabulary = document.getElementsByClassName("vocabulary_searched_pl")[0].innerHTML;
+    const vocabulary = document.getElementsByClassName(
+      "vocabulary_searched_pl"
+    )[0].innerHTML;
     const contentElement = document.getElementById("comment_input");
     const user = document.getElementById("comment_user").value;
     let content = contentElement.value;
@@ -429,16 +473,14 @@ function commentOnVocabulary() {
         },
         redirect: "follow",
         referrerPolicy: "no-referrer",
-        body: JSON.stringify({ content, user })
+        body: JSON.stringify({ content, user }),
       }
     );
     response.json().then((json) => {
-      let html = document.getElementById(
-        "comments_list"
-      ).innerHTML;
+      let html = document.getElementById("comments_list").innerHTML;
       resetPagination();
       listComments("vocabularies");
-      contentElement.value = '';
+      contentElement.value = "";
     });
   });
 }
@@ -462,26 +504,24 @@ function commentOnKanji() {
         },
         redirect: "follow",
         referrerPolicy: "no-referrer",
-        body: JSON.stringify({ content, user })
+        body: JSON.stringify({ content, user }),
       }
     );
     response.json().then((json) => {
-      let html = document.getElementById(
-        "comments_list"
-      ).innerHTML;
+      let html = document.getElementById("comments_list").innerHTML;
       resetPagination();
       listComments("kanjis");
-      contentElement.value = '';
+      contentElement.value = "";
     });
   });
 }
 
 async function listComments(wordClass) {
-  let word = '';
-  if(wordClass == "vocabularies"){
-    word = document.getElementsByClassName("vocabulary_searched_pl")[0].innerHTML;
-  }
-  else{
+  let word = "";
+  if (wordClass == "vocabularies") {
+    word = document.getElementsByClassName("vocabulary_searched_pl")[0]
+      .innerHTML;
+  } else {
     word = document.querySelector(".kanji_searched_pl.active").innerHTML;
   }
   const result = await fetch(
@@ -495,7 +535,7 @@ async function listComments(wordClass) {
       })
       .join("");
     commentsList.innerHTML = comments;
-    if(json && json.length > 0){
+    if (json && json.length > 0) {
       var options = {
         valueNames: ["username", "comment_content"],
         page: 3,
@@ -506,8 +546,8 @@ async function listComments(wordClass) {
   });
 }
 
-function resetPagination(){
+function resetPagination() {
   const paginationElement = document.getElementsByClassName("pagination");
-  if(paginationElement && paginationElement[0])
-    paginationElement[0].innerHTML = '';
+  if (paginationElement && paginationElement[0])
+    paginationElement[0].innerHTML = "";
 }
