@@ -1,8 +1,9 @@
 let selectionText = "";
+let resultVocabulary = "";
 const bodyDOM = document.querySelector("body");
 const japaneseRegex =
   /[\u3000-\u303f]|[\u3040-\u309f]|[\u30a0-\u30ff]|[\uff00-\uffef]|[\u4e00-\u9faf]|[\u3400-\u4dbf]/g;
-
+let globalLanguage = '';
 function getSelectedTextNode() {
   let selectedText = "";
   if (window.getSelection) {
@@ -56,7 +57,6 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
           handlingTabs();
           handlingMultipleKanjis(json["tratu"][0]["fields"]["word"]);
           handlingComment();
-          list_comments();
         });
       }
     });
@@ -69,6 +69,7 @@ function renderButtonResultTranslator(
   result,
   language = "jv"
 ) {
+  globalLanguage = "jv";
   const buttonResult = document.createElement("div");
   buttonResult.id = "kanji-to-furigana-result";
   const buttonContainer = document.createElement("div");
@@ -77,6 +78,7 @@ function renderButtonResultTranslator(
   dumpElement.innerHTML = result["fulltext"];
   wordSpell = dumpElement.getElementsByClassName("pw")[0].innerHTML;
   const vocabulary = result["word"];
+  resultVocabulary = vocabulary;
   const vocabularyElement = dumpElement.querySelector(`#${language}`);
   buttonContainer.innerHTML = `
   <meta name="google-signin-client_id" content="452813366788-67158ct37naeftogqtqchvb5kc6njfql.apps.googleusercontent.com">
@@ -101,7 +103,7 @@ function renderButtonResultTranslator(
             </div>
           </div>
         </div>
-        <button id="vocabulary_comment">Bình luận</button>
+        <button id="vocabulary_comment" class="active">Bình luận</button>
       </div>
       <div id="kanji" class="selection_bubble_content">
         <div id="dic_bubble_synonyms">
@@ -116,11 +118,14 @@ function renderButtonResultTranslator(
                 })
                 .join("")}
             </div>
-            ${result["word"].split("").map((kanji, index) => {
-              return renderKanjiContent(dumpElement, kanji, index);
-            })}
+            <div id="kanji_meanings">
+              ${result["word"].split("").map((kanji, index) => {
+                return renderKanjiContent(dumpElement, kanji, index);
+              })}
+            </div>
           </div>
         </div>
+        <button id="kanji_comment">Bình luận</button>
       </div>
     </div>
     <div id="language_tabs" class="popup_language_type">
@@ -134,11 +139,12 @@ function renderButtonResultTranslator(
 </div>
 <div class="g-signin2" data-onsuccess="onSignIn"></div>
 <div id="comment_section" class="popup_comment">
-  <div class="selection_bubble_content active">
+  <div class="comment_section_content active">
       <input id="comment_user" placeholder="Tên" type="text"/>
       <div id="comment_section_part">
         <textarea placeholder="Nội dung" id="comment_input" type="text"></textarea>
-        <button id="comment_btn">Bình luận</button>
+        <button class="kanji_comment_btn">Bình luận</button>
+        <button class="vocabulary_comment_btn active">Bình luận</button>
       </div>
     <div><h3>Bình luận</h3></div>
     <div id="comments_div">
@@ -162,22 +168,23 @@ function renderButtonResultTranslator(
   buttonResult.style.left = left;
   bodyDOM.appendChild(buttonResult);
   handlingLanguage(dumpElement, selectionText);
-  comment_on_vocabulary();
+  commentOnVocabulary();
+  commentOnKanji();
 }
 
 function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
-  let chinese_vietnamese_meaning,
-    kunyomi_reading,
-    onyomi_reading,
+  let chineseVietnameseMeaning,
+    kunyomiReading,
+    onyomiReading,
     componentElement;
   let component = "";
   kanjiInformations = Array.from(dumpElement.querySelectorAll("span.mdl"));
   const index = kanjiInformations.findIndex((info) =>
     info.innerHTML.includes(kanji)
   );
-  chinese_vietnamese_meaning = kanjiInformations[index].innerHTML;
-  kunyomi_reading = kanjiInformations[index + 1].innerHTML;
-  onyomi_reading = kanjiInformations[index + 2].innerHTML;
+  chineseVietnameseMeaning = kanjiInformations[index].innerHTML;
+  kunyomiReading = kanjiInformations[index + 1].innerHTML;
+  onyomiReading = kanjiInformations[index + 2].innerHTML;
   let parentElement = kanjiInformations[index].closest(".stc");
   componentElement = parentElement.querySelector(".kc");
   if (componentElement) {
@@ -193,13 +200,13 @@ function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
   let html = `
     <div id="${kanji}" class="kanji_content ${status}">
       <div id="draw-${kanji}" class="draw ${status}"></div>
-      <div class="kanji_chinese_vietnamese_meaning">${chinese_vietnamese_meaning
+      <div class="kanji_chinese_vietnamese_meaning">${chineseVietnameseMeaning
         .split(kanji)[1]
         .slice(3)}</div>
-      <div class="kunyomi">Kun(訓): ${kunyomi_reading}</div>
-      <div class="onyomi">On(音): ${onyomi_reading}</div>
+      <div class="kunyomi">Kun(訓): ${kunyomiReading}</div>
+      <div class="onyomi">On(音): ${onyomiReading}</div>
       <div class="component">Bộ: ${component}</div>
-      <div class="kanji_mean_group">Nghĩa:
+      <div id="kanji_mean_group">Nghĩa:
         ${currentKanjiMeaningElements
           .map((meaning) => {
             return `<div class="vocabulary_meaning">${meaning.innerHTML}</div>`;
@@ -218,6 +225,10 @@ function handlingTabs() {
   let tabs = document.querySelector(".popup_tab_type");
   let tab = document.querySelectorAll("div.tab_type");
   let contents = document.querySelectorAll(".selection_bubble_content");
+  let kanjiCommentBtn = document.getElementById("kanji_comment");
+  let vocabularyCommentBtn = document.getElementById("vocabulary_comment");
+  let commentSectionKanjiCommentBtn = document.getElementsByClassName("kanji_comment_btn")[0];
+  let commentSectionVocabularyCommentBtn = document.getElementsByClassName("vocabulary_comment_btn")[0];
   tabs.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "DIV") {
       for (var i = 0; i < tab.length; i++) {
@@ -227,22 +238,33 @@ function handlingTabs() {
       for (i = 0; i < contents.length; i++) {
         contents[i].classList.remove("active");
       }
+      kanjiCommentBtn.classList.remove("active");
+      vocabularyCommentBtn.classList.remove("active");
       var tabId = e.target.dataset.tab;
       document.getElementById(tabId).classList.toggle("active");
+      commentSectionKanjiCommentBtn.classList.remove("active");
+      commentSectionVocabularyCommentBtn.classList.remove("active");
+      document.getElementsByClassName(`${tabId}_comment_btn`)[0].classList.toggle("active");
+      document.getElementById(`${tabId}_comment`).classList.toggle("active");
+      resetPagination();
+      if(tabId == "vocabulary")
+        listComments("vocabularies");
+      else
+        listComments("kanjis");
     }
   });
 }
 
 function handlingMultipleKanjis(kanjis) {
   let tabs = document.querySelector(".kanji_entry");
-  let tab = document.querySelectorAll("div.kanji_searched_pl");
-  let contents = document.querySelectorAll(".kanji_content");
-  let draws = document.querySelectorAll("div.draw");
-  new Dmak(kanji, {
-    element: `draw-${kanjis.split("")[0]}`,
-  });
   tabs.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "DIV") {
+      let tab = document.querySelectorAll("div.kanji_searched_pl");
+      let contents = document.querySelectorAll(".kanji_content");
+      let draws = document.querySelectorAll("div.draw");
+      new Dmak(kanji, {
+        element: `draw-${kanjis.split("")[0]}`,
+      });
       for (var i = 0; i < tab.length; i++) {
         tab[i].classList.remove("active");
       }
@@ -259,26 +281,47 @@ function handlingMultipleKanjis(kanjis) {
       new Dmak(kanji, {
         element: `draw-${tabId}`,
       });
+      let currentKanji = document.querySelector(".kanji_searched_pl.active").innerHTML;
+      resetPagination();
+      listComments("kanjis");
+      if(globalLanguage == 'je'){
+        renderKanjiMeanings(currentKanji).then(html => {
+          document.querySelector(`#${currentKanji} > #kanji_mean_group`).innerHTML = `Meaning: ${html}`;
+        })
+      }  
     }
   });
 }
 
 function handlingComment() {
-  const vocabulary_comment_btn = document.getElementById("vocabulary_comment");
-  const comment_section = document.getElementById("comment_section");
-  vocabulary_comment_btn.addEventListener("click", (e) => {
-    if (comment_section.classList.contains("active")) {
-      return comment_section.classList.remove("active");
+  const vocabularyCommentBtn = document.getElementById("vocabulary_comment");
+  const kanjiCommentBtn = document.getElementById("kanji_comment");
+  const commentSection = document.getElementById("comment_section");
+  vocabularyCommentBtn.addEventListener("click", (e) => {
+    if (commentSection.classList.contains("active")) {
+      return commentSection.classList.remove("active");
     }
-    comment_section.classList.toggle("active");
+    resetPagination();
+    listComments("vocabularies");
+    commentSection.classList.toggle("active");
   });
+  kanjiCommentBtn.addEventListener("click", (e)=> {
+    if (commentSection.classList.contains("active")){
+      return commentSection.classList.remove("active");
+    }
+    resetPagination();
+    listComments("kanjis");
+    commentSection.classList.toggle("active");
+  })
 }
-function handlingLanguage(dumpElement, selectionText) {
+function handlingLanguage(dumpElement) {
   let tabs = document.querySelector(".popup_language_type");
   let tab = document.querySelectorAll("div.language_type");
   tabs.addEventListener("click", async function (e) {
     if (e.target && e.target.nodeName === "DIV") {
+      let currentKanji = document.querySelector(".kanji_searched_pl.active").innerHTML;
       const newLanguage = e.target.dataset.tab;
+      globalLanguage = newLanguage;
       for (let i = 0; i < tab.length; i++) {
         tab[i].classList.remove("tab_active");
       }
@@ -286,7 +329,15 @@ function handlingLanguage(dumpElement, selectionText) {
       const vocabularyElement = dumpElement.querySelector(`#${newLanguage}`);
       document.getElementById("vocabulary_mean_group").innerHTML =
         renderVocabularyMeanings(vocabularyElement);
-      const html = await renderKanjiMeanings(selectionText);
+      if(globalLanguage == "jv"){
+        document.getElementById("kanji_meanings").innerHTML =  `${resultVocabulary.split("").map((kanji, index) => {
+          return renderKanjiContent(dumpElement, kanji, index);
+        }).join("")}`
+      }
+      else {
+        renderKanjiMeanings(currentKanji).then(html => {
+        document.querySelector(`#${currentKanji} > #kanji_mean_group`).innerHTML = `Meaning: ${html}`;
+      })}
     }
   });
 }
@@ -303,11 +354,11 @@ function renderVocabularyMeanings(element) {
   return html;
 }
 
-async function renderKanjiMeanings(selectionText) {
+async function renderKanjiMeanings(kanji) {
   const result = await fetch(
-    `http://localhost:3000/api/v1/words/${selectionText}/english`
+    `http://localhost:3000/api/v1/words/${kanji}/english`
   );
-  result.json().then((json) => {
+  return result.json().then((json) => {
     return json["meanings"]
       .map((meaning) => {
         return `<div class="vocabulary_meaning">${meaning}</div>`;
@@ -358,63 +409,105 @@ chrome.runtime.onMessage.addListener((request) => {
   );
   document.body.outerHTML = webStr;
 });
-function onSignIn(googleUser) {
-  var profile = googleUser.getBasicProfile();
-  console.log("ID: " + profile.getId()); // Do not send to your backend! Use an ID token instead.
-  console.log("Name: " + profile.getName());
-  console.log("Image URL: " + profile.getImageUrl());
-  console.log("Email: " + profile.getEmail()); // This is null if the 'email' scope is not present.
-}
 
-function comment_on_vocabulary() {
-  const comment_btn = document.getElementById("comment_btn");
-  comment_btn.addEventListener("click", async () => {
-    const vocabulary = document.getElementsByClassName(
-      "vocabulary_searched_pl"
-    )[0].innerHTML;
-    const content = document.getElementById("comment_input").value;
+function commentOnVocabulary() {
+  const commentBtn = document.getElementsByClassName("vocabulary_comment_btn")[0];
+  commentBtn.addEventListener("click", async () => {
+    const vocabulary = document.getElementsByClassName("vocabulary_searched_pl")[0].innerHTML;
+    const contentElement = document.getElementById("comment_input");
     const user = document.getElementById("comment_user").value;
+    let content = contentElement.value;
     const response = await fetch(
       `http://localhost:3000/api/v1/vocabularies/${vocabulary}/comments`,
       {
         method: "POST",
-        mode: "cors", // no-cors, *cors, same-origin
-        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: "same-origin", // include, *same-origin, omit
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
-          // 'Content-Type': 'application/x-www-form-urlencoded',
         },
-        redirect: "follow", // manual, *follow, error
-        referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        body: JSON.stringify({ content, user }),
+        redirect: "follow",
+        referrerPolicy: "no-referrer",
+        body: JSON.stringify({ content, user })
       }
     );
     response.json().then((json) => {
-      document.getElementById(
+      let html = document.getElementById(
         "comments_list"
-      ).innerHTML += `<li><span>${json["user"]}:</span>${json["content"]}</li>`;
+      ).innerHTML;
+      resetPagination();
+      listComments("vocabularies");
+      contentElement.value = '';
     });
   });
 }
 
-async function list_comments() {
+function commentOnKanji() {
+  const commentBtn = document.getElementsByClassName("kanji_comment_btn")[0];
+  commentBtn.addEventListener("click", async () => {
+    const kanji = document.querySelector(".kanji_searched_pl.active").innerHTML;
+    const contentElement = document.getElementById("comment_input");
+    const user = document.getElementById("comment_user").value;
+    let content = contentElement.value;
+    const response = await fetch(
+      `http://localhost:3000/api/v1/kanjis/${kanji}/comments`,
+      {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        redirect: "follow",
+        referrerPolicy: "no-referrer",
+        body: JSON.stringify({ content, user })
+      }
+    );
+    response.json().then((json) => {
+      let html = document.getElementById(
+        "comments_list"
+      ).innerHTML;
+      resetPagination();
+      listComments("kanjis");
+      contentElement.value = '';
+    });
+  });
+}
+
+async function listComments(wordClass) {
+  let word = '';
+  if(wordClass == "vocabularies"){
+    word = document.getElementsByClassName("vocabulary_searched_pl")[0].innerHTML;
+  }
+  else{
+    word = document.querySelector(".kanji_searched_pl.active").innerHTML;
+  }
   const result = await fetch(
-    `http://localhost:3000/api/v1/vocabularies/${vocabulary}/comments`
+    `http://localhost:3000/api/v1/${wordClass}/${word}/comments`
   );
   result.json().then((json) => {
-    let comments_list = document.getElementById("comments_list");
+    let commentsList = document.getElementById("comments_list");
     const comments = json
       .map((comment) => {
         return `<li><h3 class="username">${comment.user}:</h3><p class="comment_content">${comment.content}</p></li>`;
       })
       .join("");
-    comments_list.innerHTML = comments;
-    var options = {
-      valueNames: ["username", "comment_content"],
-      page: 3,
-      pagination: true,
-    };
-    new List("comments_div", options);
+    commentsList.innerHTML = comments;
+    if(json && json.length > 0){
+      var options = {
+        valueNames: ["username", "comment_content"],
+        page: 3,
+        pagination: true,
+      };
+      new List("comments_div", options);
+    }
   });
+}
+
+function resetPagination(){
+  const paginationElement = document.getElementsByClassName("pagination");
+  if(paginationElement && paginationElement[0])
+    paginationElement[0].innerHTML = '';
 }
