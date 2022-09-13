@@ -21,18 +21,13 @@ function getRangeSectionText() {
   return selectionRect;
 }
 
-function renderButtonTranslator(selectionTextRange, selectionText) {
+function renderButtonTranslator(selectionTextRange, selectionText, left, top) {
   const buttonWrapper = document.createElement("div");
   buttonWrapper.id = "kanji-to-furigana";
   const buttonIcon = document.createElement("div");
   buttonIcon.classList.add("translator-ext-icon");
   buttonIcon.innerHTML = `<svg width="20px" height="20px" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"><g fill="#fff" fill-rule="evenodd" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" transform="translate(2 2)"><path d="m16.5 8.5v-6c0-1.1045695-.8954305-2-2-2h-6c-1.1045695 0-2 .8954305-2 2v6c0 1.1045695.8954305 2 2 2h6c1.1045695 0 2-.8954305 2-2z"/><path d="m4.5 6.50344846h-2.00001427c-1.1045695 0-2 .8954305-2 2v5.99943324c0 1.1045695.8954305 2 2 2h.00345627l6.00001428-.0103718c1.10321833-.0019065 1.99654372-.8967771 1.99654372-1.999997v-1.9925129"/><g transform="translate(2.502 9.5)"><path d="m2.998 1.003h-3"/><path d="m4.49841597 2.5c-.33333333.33333333-.66666667.66666667-1 1s-1.16666667.83333333-2.5 1.5"/><path d="m.99841597 1.00316806c.33333333 1.16613866.83333333 1.99894398 1.5 2.49841597s1.5.99894398 2.5 1.49841597"/></g><g transform="translate(8.5 2.5)"><path d="m3 0-3 6"/><path d="m3 0 3 6"/><path d="m3 2v4" transform="matrix(0 1 -1 0 7 1)"/></g></g></svg>`;
   buttonWrapper.appendChild(buttonIcon);
-  const top = selectionTextRange.top + selectionTextRange.height + 6 + "px";
-  const left =
-    selectionTextRange.left +
-    (selectionTextRange.width / 2 - buttonWrapper.offsetWidth / 2) +
-    "px";
   buttonWrapper.style.position = "absolute";
   buttonWrapper.style.background = "blue";
   buttonWrapper.style.cursor = "pointer";
@@ -42,29 +37,61 @@ function renderButtonTranslator(selectionTextRange, selectionText) {
   bodyDOM.appendChild(buttonWrapper);
   const dumpElement = document.createElement("div");
   if (buttonWrapper) {
-    buttonWrapper.addEventListener("click", async () => {
+    buttonWrapper.addEventListener("click",() => {
       if (selectionText.length > 0) {
-        const result = await fetch(
+        fetch(
           `http://localhost:3000/api/v1/words/${selectionText}/vietnamese`
-        );
-        result.json().then((json) => {
-          dumpElement.innerHTML = json["tratu"][0]["fields"]["fulltext"];
-          const vocabulary = json["tratu"][0]["fields"]["word"];
-          renderButtonResultTranslator(
-            selectionTextRange,
-            selectionText,
-            dumpElement,
-            vocabulary
-          );
-          buttonWrapper.remove();
-          buttonIcon.remove();
-          handlingTabs();
-          handlingComment();
-          handlingMultipleKanjis(dumpElement, json["tratu"][0]["fields"]["word"]);
-        });
+        )
+        .then((res) => res.json())
+        .then((json) => {
+          if(json["tratu"] && json["tratu"].length > 0){
+            dumpElement.innerHTML = json["tratu"][0]["fields"]["fulltext"];
+            const vocabulary = json["tratu"][0]["fields"]["word"];
+            renderButtonResultTranslator(
+              selectionTextRange,
+              selectionText,
+              dumpElement,
+              vocabulary,
+              left,
+              top
+            );
+            buttonWrapper.remove();
+            buttonIcon.remove();
+            handlingTabs();
+            handlingComment();
+            handlingMultipleKanjis(dumpElement, json["tratu"][0]["fields"]["word"]);
+          }
+          else {
+            throw new Error(`Cannot find ${selectionText} meaning`)
+          }
+        })
+        .catch(() => {
+          renderErrorResult(selectionText, left, top);
+        })
       }
     });
   }
+}
+
+function renderErrorResult(selectionText, left, top){
+  const buttonResult = document.createElement("div");
+  buttonResult.id = "kanji-to-furigana-result";
+  const buttonContainer = document.createElement("div");
+  buttonContainer.classList.add("translator-result-ext-container");
+  buttonContainer.innerHTML = `
+  <div class="popup_rect">
+    <div id="popup_tabs">
+      Cannot find ${selectionText} meaning
+    </div>
+  </div>
+  `
+  buttonResult.style.position = "absolute";
+  buttonResult.style.cursor = "pointer";
+  buttonResult.style.padding = "4px";
+  buttonResult.style.top = top;
+  buttonResult.style.left = left;
+  buttonResult.appendChild(buttonContainer);
+  bodyDOM.appendChild(buttonResult);
 }
 
 function renderButtonResultTranslator(
@@ -72,6 +99,8 @@ function renderButtonResultTranslator(
   selectionText,
   dumpElement,
   vocabulary,
+  left,
+  top,
   language = "jv"
 ) {
   globalLanguage = "jv";
@@ -83,7 +112,6 @@ function renderButtonResultTranslator(
   resultVocabulary = vocabulary;
   const vocabularyElement = dumpElement.querySelector(`#${language}`);
   buttonContainer.innerHTML = `
-  <meta name="google-signin-client_id" content="452813366788-67158ct37naeftogqtqchvb5kc6njfql.apps.googleusercontent.com">
   <div class="popup_rect">
     <div id="popup_tabs">
       <div class="popup_tab_type">
@@ -158,11 +186,6 @@ function renderButtonResultTranslator(
 </div>
   `;
   buttonResult.appendChild(buttonContainer);
-  const top = selectionTextRange.top - selectionTextRange.height - 6 + "px";
-  const left =
-    selectionTextRange.left +
-    (selectionTextRange.width / 2 - buttonResult.offsetWidth / 2) +
-    "px";
   buttonResult.style.position = "absolute";
   buttonResult.style.cursor = "pointer";
   buttonResult.style.padding = "4px";
@@ -438,7 +461,12 @@ bodyDOM.addEventListener("mouseup", (event) => {
   selectionText = getSelectedTextNode().toString();
   if (selectionText.length > 0) {
     const selectionTextRange = getRangeSectionText();
-    renderButtonTranslator(selectionTextRange, selectionText);
+    const left = event.pageX + "px";
+    const top = event.pageY + "px";
+    renderButtonTranslator(selectionTextRange, selectionText, left, top);
+    setTimeout(() => {
+      document.getElementById("kanji-to-furigana").remove();
+    }, (3000));
   }
 });
 
