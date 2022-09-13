@@ -2,6 +2,7 @@ require 'uri'
 require 'net/http'
 require 'addressable'
 require "tataki"
+require "cgi"
 
 class Api::V1::WordsController < ApplicationController
 
@@ -17,7 +18,7 @@ class Api::V1::WordsController < ApplicationController
 
   def english_search
     word = params[:word]
-    uri = Addressable::URI.parse("https://kanjiapi.dev/v1/kanji/#{word}")
+    uri = URI("https://kanjiapi.dev/v1/kanji/#{CGI.escape(word)}")
     req = Net::HTTP::Get.new(uri)
     res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') { |http|
       http.request(req)
