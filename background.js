@@ -10,7 +10,7 @@ chrome.contextMenus.create({
 chrome.contextMenus.onClicked.addListener(async function(clickData){
   if (clickData.menuItemId == "OpenSN" && clickData.selectionText) {
     const result = await fetch(
-      `http://localhost:3000/api/v1/words/${clickData.selectionText}/furigana`
+      `https://kanjitofurigana.tk/api/v1/words/${clickData.selectionText}/furigana`
     );
     result.json().then((json) => {
       chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {

@@ -13,14 +13,14 @@ function getSelectedTextNode() {
   } else return "";
   return selectedText;
 }
-
+ 
 function getRangeSectionText() {
   const selectionTextNode = getSelectedTextNode();
   const getRange = selectionTextNode.getRangeAt(0);
   const selectionRect = getRange.getBoundingClientRect();
   return selectionRect;
 }
-
+ 
 function renderButtonTranslator(selectionTextRange, selectionText, left, top) {
   const buttonWrapper = document.createElement("div");
   buttonWrapper.id = "kanji-to-furigana";
@@ -40,7 +40,7 @@ function renderButtonTranslator(selectionTextRange, selectionText, left, top) {
     buttonWrapper.addEventListener("click",() => {
       if (selectionText.length > 0) {
         fetch(
-          `http://localhost:3000/api/v1/words/${selectionText}/vietnamese`
+          `https://kanjitofurigana.tk/api/v1/words/${selectionText}/vietnamese`
         )
         .then((res) => res.json())
         .then((json) => {
@@ -72,7 +72,7 @@ function renderButtonTranslator(selectionTextRange, selectionText, left, top) {
     });
   }
 }
-
+ 
 function renderErrorResult(selectionText, left, top){
   const buttonResult = document.createElement("div");
   buttonResult.id = "kanji-to-furigana-result";
@@ -93,7 +93,7 @@ function renderErrorResult(selectionText, left, top){
   buttonResult.appendChild(buttonContainer);
   bodyDOM.appendChild(buttonResult);
 }
-
+ 
 function renderButtonResultTranslator(
   selectionTextRange,
   selectionText,
@@ -196,7 +196,7 @@ function renderButtonResultTranslator(
   commentOnVocabulary();
   commentOnKanji();
 }
-
+ 
 function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
   let chineseVietnameseMeaning, kunyomiReading, onyomiReading, componentElement;
   let component = "";
@@ -222,7 +222,7 @@ function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
   let html = `
     <div id="${kanji}" class="kanji_content ${status}">
       <div id="draw-${kanji}" class="draw ${status}"></div>
-      <div class="kanji_chinese_vietnamese_meaning">${chineseVietnameseMeaning
+      <div class="kanji_chinese_meaning">${chineseVietnameseMeaning
         .split(kanji)[1]
         .slice(3)}</div>
       <div class="kunyomi">Kun(訓): ${kunyomiReading}</div>
@@ -242,7 +242,7 @@ function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
   });
   return html;
 }
-
+ 
 function handlingTabs() {
   let tabs = document.querySelector(".popup_tab_type");
   let tab = document.querySelectorAll("div.tab_type");
@@ -279,7 +279,7 @@ function handlingTabs() {
     }
   });
 }
-
+ 
 function handlingMultipleKanjis(dumpElement, kanjis) {
   let tabs = document.querySelector(".kanji_entry");
   tabs.addEventListener("click", function (e) {
@@ -324,7 +324,7 @@ function handlingMultipleKanjis(dumpElement, kanjis) {
       else if (globalLanguage == "je") {
         getKanjiMeanings(currentKanji).then((json) => {
           document.querySelector(
-            `#${currentKanji} > .kanji_chinese_vietnamese_meaning`
+            `#${currentKanji} > .kanji_chinese_meaning`
           ).innerHTML = json["heisig_en"].toUpperCase();
           document.querySelector(`#${currentKanji} > .component`).remove();
           document.querySelector(
@@ -339,7 +339,7 @@ function handlingMultipleKanjis(dumpElement, kanjis) {
     }
   });
 }
-
+ 
 function handlingComment() {
   const vocabularyCommentBtn = document.getElementById("vocabulary_comment");
   const kanjiCommentBtn = document.getElementById("kanji_comment");
@@ -375,9 +375,9 @@ function handlingLanguage(dumpElement) {
         tab[i].classList.remove("tab_active");
       }
       e.target.classList.toggle("tab_active");
-      const vocabularyElement = dumpElement.querySelector(`#${newLanguage}`);
+      const vocabularyElements = Array.from(dumpElement.querySelectorAll(`#${newLanguage}`));
       document.getElementById("vocabulary_mean_group").innerHTML =
-        renderVocabularyMeanings(vocabularyElement);
+        vocabularyElements.map(e => renderVocabularyMeanings(e)).join("");
       if (globalLanguage == "jv") {
         document.getElementById(
           "kanji_meanings"
@@ -395,7 +395,7 @@ function handlingLanguage(dumpElement) {
       } else {
         getKanjiMeanings(currentKanji).then((json) => {
           document.querySelector(
-            `#${currentKanji} > .kanji_chinese_vietnamese_meaning`
+            `#${currentKanji} > .kanji_chinese_meaning`
           ).innerHTML = json["heisig_en"].toUpperCase();
           document.querySelector(`#${currentKanji} > .component`).remove();
           document.querySelector(
@@ -410,7 +410,7 @@ function handlingLanguage(dumpElement) {
     }
   });
 }
-
+ 
 function renderVocabularyMeanings(element) {
   wordMeanings = Array.from(element.querySelectorAll(".fw")).map((e) =>
     e.innerHTML[0] == "▪" ? e.innerHTML.slice(1) : e.innerHTML``
@@ -422,14 +422,14 @@ function renderVocabularyMeanings(element) {
     .join("");
   return html;
 }
-
+ 
 async function getKanjiMeanings(kanji) {
   const result = await fetch(
-    `http://localhost:3000/api/v1/words/${kanji}/english`
+    `https://kanjitofurigana.tk/api/v1/words/${kanji}/english`
   );
   return result.json();
 }
-
+ 
 function furigana(japanese, hiragana) {
   const diffs = Array.from(
     new diff_match_patch().diff_main(japanese, hiragana)
@@ -451,7 +451,7 @@ function furigana(japanese, hiragana) {
   });
   return html;
 }
-
+ 
 bodyDOM.addEventListener("mouseup", (event) => {
   const buttonResult = document.querySelector("div#kanji-to-furigana-result");
   if (buttonResult && buttonResult.contains(event.target)) {
@@ -469,7 +469,7 @@ bodyDOM.addEventListener("mouseup", (event) => {
     }, (3000));
   }
 });
-
+ 
 chrome.runtime.onMessage.addListener((request) => {
   let webStr = document.body.outerHTML.replace(
     request.selectionText,
@@ -477,7 +477,7 @@ chrome.runtime.onMessage.addListener((request) => {
   );
   document.body.outerHTML = webStr;
 });
-
+ 
 function commentOnVocabulary() {
   const commentBtn = document.getElementsByClassName(
     "vocabulary_comment_btn"
@@ -490,7 +490,7 @@ function commentOnVocabulary() {
     const user = document.getElementById("comment_user").value;
     let content = contentElement.value;
     const response = await fetch(
-      `http://localhost:3000/api/v1/vocabularies/${vocabulary}/comments`,
+      `https://kanjitofurigana.tk/api/v1/vocabularies/${vocabulary}/comments`,
       {
         method: "POST",
         mode: "cors",
@@ -512,7 +512,7 @@ function commentOnVocabulary() {
     });
   });
 }
-
+ 
 function commentOnKanji() {
   const commentBtn = document.getElementsByClassName("kanji_comment_btn")[0];
   commentBtn.addEventListener("click", async () => {
@@ -521,7 +521,7 @@ function commentOnKanji() {
     const user = document.getElementById("comment_user").value;
     let content = contentElement.value;
     const response = await fetch(
-      `http://localhost:3000/api/v1/kanjis/${kanji}/comments`,
+      `https://kanjitofurigana.tk/api/v1/kanjis/${kanji}/comments`,
       {
         method: "POST",
         mode: "cors",
@@ -543,7 +543,7 @@ function commentOnKanji() {
     });
   });
 }
-
+ 
 async function listComments(wordClass) {
   let word = "";
   if (wordClass == "vocabularies") {
@@ -553,7 +553,7 @@ async function listComments(wordClass) {
     word = document.querySelector(".kanji_searched_pl.active").innerHTML;
   }
   const result = await fetch(
-    `http://localhost:3000/api/v1/${wordClass}/${word}/comments`
+    `https://kanjitofurigana.tk/api/v1/${wordClass}/${word}/comments`
   );
   result.json().then((json) => {
     let commentsList = document.getElementById("comments_list");
@@ -573,7 +573,7 @@ async function listComments(wordClass) {
     }
   });
 }
-
+ 
 function resetPagination() {
   const paginationElement = document.getElementsByClassName("pagination");
   if (paginationElement && paginationElement[0])
