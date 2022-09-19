@@ -6,7 +6,7 @@ describe('コンテントスクリプト', () => {
   let page;
   beforeEach(async () => {
     browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       defaultViewport: null,
       args: [
         `--disable-extensions-except=${EXTENSION_PATH}`,
