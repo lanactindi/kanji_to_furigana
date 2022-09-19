@@ -2,24 +2,22 @@ name: Automated browser tests
 on: push
 jobs:
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        node_version: [14]
+    name: Run Headful End-to-End Tests 
     runs-on: ubuntu-latest
+    env:
+      CI: 'true'
     steps:
-      - name: install puppeteer libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb libgbm-dev
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Install Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node_version }}
-          check-latest: true
-      - name: Install Dependencies
-        run: yarn
-      - name: Run Tests 👩🏽‍💻
-        run: yarn ci
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Install node 
+      uses: actions/setup-node@v2-beta
+      with:
+        node-version: 12.x
+    - name: Install stuff 
+      run: npm install 
+      env:
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+    - name: Run headful puppeteer tests
+      uses: djp3/puppeteer-headful@master
+      with:
+        args: npm ci

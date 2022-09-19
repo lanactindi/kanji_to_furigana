@@ -6,13 +6,13 @@ describe('コンテントスクリプト', () => {
   let page;
   beforeEach(async () => {
     browser = await puppeteer.launch({
-      headless: true,
-      defaultViewport: null,
+      executablePath: process.env.PUPPETEER_EXEC_PATH,
+      headless: false,
       args: [
+        `--no-sandbox`,
         `--disable-extensions-except=${EXTENSION_PATH}`,
-        `--load-extension=${EXTENSION_PATH}`,
-        '--window-size=800,600',
-      ],
+        `--load-extension=${EXTENSION_PATH}`
+      ]
     });
     page = await browser.newPage();
     await page.goto(
