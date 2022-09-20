@@ -63,3 +63,7 @@ KanjiToFurigana は次の サービス に依存しています。
 - **dmak** *https://github.com/mbilbille/dmak*
 - **tracau.vn** *https://tracau.vn*
 - **kanjiapi.dev** *https://kanjiapi.dev/*
+
+## License
+
+[MIT](LICENSE)
