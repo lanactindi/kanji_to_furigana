@@ -9,10 +9,10 @@ describe('コンテントスクリプト', () => {
       executablePath: process.env.PUPPETEER_EXEC_PATH,
       headless: false,
       args: [
-        `--no-sandbox`,
+        '--no-sandbox',
         `--disable-extensions-except=${EXTENSION_PATH}`,
-        `--load-extension=${EXTENSION_PATH}`
-      ]
+        `--load-extension=${EXTENSION_PATH}`,
+      ],
     });
     page = await browser.newPage();
     await page.goto(
