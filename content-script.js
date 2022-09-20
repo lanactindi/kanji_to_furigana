@@ -317,7 +317,10 @@ function handlingMultipleKanjis(dumpElement, kanjis) {
           document.querySelector(
             `#${currentKanji} > .kanji_chinese_meaning`,
           ).innerHTML = json.heisig_en.toUpperCase();
-          document.querySelector(`#${currentKanji} > .component`).remove();
+          const currentKanjiComponent = document.querySelector(`#${currentKanji} > .component`);
+          if (currentKanjiComponent) {
+            currentKanjiComponent.remove();
+          }
           document.querySelector(
             `#${currentKanji} > #kanji_mean_group`,
           ).innerHTML = `Meaning: ${json.meanings
@@ -383,7 +386,10 @@ function handlingLanguage(dumpElement) {
           document.querySelector(
             `#${currentKanji} > .kanji_chinese_meaning`,
           ).innerHTML = json.heisig_en.toUpperCase();
-          document.querySelector(`#${currentKanji} > .component`).remove();
+          const currentKanjiComponent = document.querySelector(`#${currentKanji} > .component`);
+          if (currentKanjiComponent) {
+            currentKanjiComponent.remove();
+          }
           document.querySelector(
             `#${currentKanji} > #kanji_mean_group`,
           ).innerHTML = `Meaning: ${json.meanings
@@ -447,7 +453,10 @@ bodyDOM.addEventListener('mouseup', (event) => {
     const top = `${event.pageY}px`;
     renderButtonTranslator(selectionTextRange, selectionText, left, top);
     setTimeout(() => {
-      document.getElementById('kanji-to-furigana').remove();
+      const icon = document.getElementById('kanji-to-furigana');
+      if (icon) {
+        icon.remove();
+      }
     }, (3000));
   }
   return undefined;
