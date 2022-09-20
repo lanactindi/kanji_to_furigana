@@ -24,6 +24,6 @@
       "resources": ["popup.html", "lib/kanji/*"]
     }
   ],
-  "permissions": ["activeTab", "scripting", "contextMenus", "storage"],
+  "permissions": ["contextMenus"],
   "background": { "service_worker": "background.js", "mode": "module"}
 }
