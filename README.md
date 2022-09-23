@@ -18,6 +18,12 @@ Tại sao lại là người việt ? Đó là vì người việt có 1 cách h
 ```bash
 git clone https://github.com/lanactindi/kanji_to_furigana.git
 ```
+```bash
+cd kanji_to_furigana
+```
+```bash
+npm install
+```
 Chromeブラウザで```chrome://extensions/```にアクセスして、
 
 <img width="190" alt="Screen Shot 0004-09-21 at 0 27 46" src="https://user-images.githubusercontent.com/94335407/191299998-05c61f80-5a8f-4969-bbba-d0fd8adff05b.png">
