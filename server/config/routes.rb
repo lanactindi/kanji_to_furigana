@@ -1,17 +1,9 @@
 Rails.application.routes.draw do
   namespace 'api' do
     namespace 'v1' do
-      get '/words/:word/vietnamese', to: "words#vietnamese_search"
-      get '/words/:word/english', to: "words#english_search"
-      get '/words/:word/furigana', to: "words#kanji_to_furigana"
-      namespace 'vocabularies' do
-        post '/:vocabulary/comments', to: "comments#create"
-        get '/:vocabulary/comments', to: "comments#index"
-      end
-      namespace 'kanjis' do
-        post '/:kanji/comments', to: "comments#create"
-        get '/:kanji/comments', to: "comments#index"
-      end
+      get '/words/:word/vietnamese', to: "words#vietnamese_search", as: "vietnamese"
+      get '/words/:word/english', to: "words#english_search", as: "english"
+      get '/words/:word/furigana', to: "words#kanji_to_furigana", as: "furigana"
     end
   end
 end
