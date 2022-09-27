@@ -6,9 +6,6 @@ on:
 jobs:
   rspec:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: server
     timeout-minutes: 10
     services:
       mysql:
@@ -55,9 +52,6 @@ jobs:
 
   rubocop:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: server
     timeout-minutes: 10
     steps:
       - name: Checkout code
