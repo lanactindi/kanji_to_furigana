@@ -5,7 +5,7 @@ on:
   pull_request:
 defaults:
   run:
-    working-directory: ./server
+    working-directory: server
 jobs:
   rspec:
     runs-on: ubuntu-latest
