@@ -28,6 +28,10 @@ AllCops:
     - '**/spec_helper.rb'
     - 'node_modules/**/*'
     - 'bin/*'
+    - '**/db/schema.rb'
+    - '**/config/**/*'
+    - '**/test/**/*'
+    - '**/app/channels/**/*'
 
 ###########################################################
 ###################### Rubocop ############################
@@ -301,3 +305,6 @@ Style/SingleArgumentDig:
 
 Style/StringConcatenation:
   Enabled: true
+
+Rails/FilePath:
+  Enabled: false
