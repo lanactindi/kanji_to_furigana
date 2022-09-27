@@ -56,7 +56,6 @@ function renderButtonTranslator(selectionTextRange, selectionText, left, top) {
               buttonWrapper.remove();
               buttonIcon.remove();
               handlingTabs();
-              handlingComment();
               handlingMultipleKanjis(dumpElement, json.tratu[0].fields.word);
             } else {
               throw new Error(`Cannot find ${selectionText} meaning`);
@@ -130,7 +129,6 @@ function renderButtonResultTranslator(
             </div>
           </div>
         </div>
-        <button id="vocabulary_comment" class="active">Comment</button>
       </div>
       <div id="kanji" class="selection_bubble_content">
         <div id="dic_bubble_synonyms">
@@ -149,7 +147,6 @@ function renderButtonResultTranslator(
             </div>
           </div>
         </div>
-        <button id="kanji_comment">Comment</button>
       </div>
     </div>
     <div id="language_tabs" class="popup_language_type">
@@ -161,22 +158,6 @@ function renderButtonResultTranslator(
 }"> English</div>
     </div>
 </div>
-<div class="g-signin2" data-onsuccess="onSignIn"></div>
-<div id="comment_section" class="popup_comment">
-  <div class="comment_section_content active">
-      <input id="comment_user" placeholder="Name" type="text"/>
-      <div id="comment_section_part">
-        <textarea placeholder="Content" id="comment_input" type="text"></textarea>
-        <button class="kanji_comment_btn">Comment</button>
-        <button class="vocabulary_comment_btn active">Comment</button>
-      </div>
-    <div><h3>Comment</h3></div>
-    <div id="comments_div">
-      <ul class="list" id="comments_list">
-      </ul>
-      <ul class="pagination"></ul>
-    </div>
-  </div>
 </div>
   `;
   buttonResult.appendChild(buttonContainer);
@@ -187,8 +168,6 @@ function renderButtonResultTranslator(
   buttonResult.style.left = left;
   bodyDOM.appendChild(buttonResult);
   handlingLanguage(dumpElement, selectionText);
-  commentOnVocabulary();
-  commentOnKanji();
 }
 
 function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
@@ -237,12 +216,6 @@ function handlingTabs() {
   const tabs = document.querySelector('.popup_tab_type');
   const tab = document.querySelectorAll('div.tab_type');
   const contents = document.querySelectorAll('.selection_bubble_content');
-  const kanjiCommentBtn = document.getElementById('kanji_comment');
-  const vocabularyCommentBtn = document.getElementById('vocabulary_comment');
-  const commentSectionKanjiCommentBtn = document.getElementsByClassName('kanji_comment_btn')[0];
-  const commentSectionVocabularyCommentBtn = document.getElementsByClassName(
-    'vocabulary_comment_btn',
-  )[0];
   tabs.addEventListener('click', (e) => {
     if (e.target && e.target.nodeName === 'DIV') {
       for (let i = 0; i < tab.length; i += 1) {
@@ -252,19 +225,8 @@ function handlingTabs() {
       for (let i = 0; i < contents.length; i += 1) {
         contents[i].classList.remove('active');
       }
-      kanjiCommentBtn.classList.remove('active');
-      vocabularyCommentBtn.classList.remove('active');
       const tabId = e.target.dataset.tab;
       document.getElementById(tabId).classList.toggle('active');
-      commentSectionKanjiCommentBtn.classList.remove('active');
-      commentSectionVocabularyCommentBtn.classList.remove('active');
-      document
-        .getElementsByClassName(`${tabId}_comment_btn`)[0]
-        .classList.toggle('active');
-      document.getElementById(`${tabId}_comment`).classList.toggle('active');
-      resetPagination();
-      if (tabId === 'vocabulary') listComments('vocabularies');
-      else listComments('kanjis');
     }
   });
 }
@@ -301,7 +263,6 @@ function handlingMultipleKanjis(dumpElement, kanjis) {
         '.kanji_searched_pl.active',
       ).innerHTML;
       resetPagination();
-      listComments('kanjis');
       if (globalLanguage === 'jv') {
         const result = getSelectedTextNode().toString();
         document.getElementById(
@@ -332,27 +293,6 @@ function handlingMultipleKanjis(dumpElement, kanjis) {
   });
 }
 
-function handlingComment() {
-  const vocabularyCommentBtn = document.getElementById('vocabulary_comment');
-  const kanjiCommentBtn = document.getElementById('kanji_comment');
-  const commentSection = document.getElementById('comment_section');
-  vocabularyCommentBtn.addEventListener('click', () => {
-    if (commentSection.classList.contains('active')) {
-      return commentSection.classList.remove('active');
-    }
-    resetPagination();
-    listComments('vocabularies');
-    return commentSection.classList.toggle('active');
-  });
-  kanjiCommentBtn.addEventListener('click', () => {
-    if (commentSection.classList.contains('active')) {
-      return commentSection.classList.remove('active');
-    }
-    resetPagination();
-    listComments('kanjis');
-    return commentSection.classList.toggle('active');
-  });
-}
 function handlingLanguage(dumpElement) {
   const tabs = document.querySelector('.popup_language_type');
   const tab = document.querySelectorAll('div.language_type');
@@ -469,99 +409,6 @@ chrome.runtime.onMessage.addListener((request) => {
   );
   document.body.outerHTML = webStr;
 });
-
-function commentOnVocabulary() {
-  const commentBtn = document.getElementsByClassName(
-    'vocabulary_comment_btn',
-  )[0];
-  commentBtn.addEventListener('click', async () => {
-    const vocabulary = document.getElementsByClassName(
-      'vocabulary_searched_pl',
-    )[0].innerHTML;
-    const contentElement = document.getElementById('comment_input');
-    const user = document.getElementById('comment_user').value;
-    const content = contentElement.value;
-    const response = await fetch(
-      `https://kanjitofurigana.tk/api/v1/vocabularies/${vocabulary}/comments`,
-      {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        redirect: 'follow',
-        referrerPolicy: 'no-referrer',
-        body: JSON.stringify({ content, user }),
-      },
-    );
-    response.json().then(() => {
-      resetPagination();
-      listComments('vocabularies');
-      contentElement.value = '';
-    });
-  });
-}
-
-function commentOnKanji() {
-  const commentBtn = document.getElementsByClassName('kanji_comment_btn')[0];
-  commentBtn.addEventListener('click', async () => {
-    const kanji = document.querySelector('.kanji_searched_pl.active').innerHTML;
-    const contentElement = document.getElementById('comment_input');
-    const user = document.getElementById('comment_user').value;
-    const content = contentElement.value;
-    const response = await fetch(
-      `https://kanjitofurigana.tk/api/v1/kanjis/${kanji}/comments`,
-      {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        redirect: 'follow',
-        referrerPolicy: 'no-referrer',
-        body: JSON.stringify({ content, user }),
-      },
-    );
-    response.json().then(() => {
-      resetPagination();
-      listComments('kanjis');
-      contentElement.value = '';
-    });
-  });
-}
-
-async function listComments(wordClass) {
-  let word = '';
-  if (wordClass === 'vocabularies') {
-    word = document.getElementsByClassName('vocabulary_searched_pl')[0]
-      .innerHTML;
-  } else {
-    word = document.querySelector('.kanji_searched_pl.active').innerHTML;
-  }
-  const result = await fetch(
-    `https://kanjitofurigana.tk/api/v1/${wordClass}/${word}/comments`,
-  );
-  result.json().then((json) => {
-    const commentsList = document.getElementById('comments_list');
-    const comments = json
-      .map((comment) => `<li><h3 class="username">${comment.user}:</h3><p class="comment_content">${comment.content}</p></li>`)
-      .join('');
-    commentsList.innerHTML = comments;
-    if (json && json.length > 0) {
-      const options = {
-        valueNames: ['username', 'comment_content'],
-        page: 3,
-        pagination: true,
-      };
-      // eslint-disable-next-line no-unused-vars, no-undef
-      const list = new List('comments_div', options);
-    }
-  });
-}
 
 function resetPagination() {
   const paginationElement = document.getElementsByClassName('pagination');

@@ -1,0 +1,32 @@
+{
+    "kanji": "目",
+    "grade": 1,
+    "stroke_count": 5,
+    "meanings": [
+      "eye",
+      "class",
+      "look",
+      "insight",
+      "experience",
+      "care",
+      "favor"
+    ],
+    "kun_readings": [
+      "め",
+      "-め",
+      "ま-"
+    ],
+    "on_readings": [
+      "モク",
+      "ボク"
+    ],
+    "name_readings": [
+      "さかん",
+      "さがん",
+      "さっか",
+      "さつか"
+    ],
+    "jlpt": 4,
+    "unicode": "76ee",
+    "heisig_en": "eye"
+  }
