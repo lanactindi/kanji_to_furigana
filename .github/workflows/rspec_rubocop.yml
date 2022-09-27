@@ -3,7 +3,9 @@ name: Run rspec, rubocop
 on:
   push:
   pull_request:
-
+defaults:
+  run:
+    working-directory: ./server
 jobs:
   rspec:
     runs-on: ubuntu-latest
