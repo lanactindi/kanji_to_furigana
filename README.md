@@ -61,6 +61,16 @@ Developer modeをオンにしてください。
 
 ![Screen Shot 0004-09-21 at 0 58](https://user-images.githubusercontent.com/94335407/191307975-29ff671b-cc9e-43ad-99b3-03461c4f0e66.png)
 
+### サーバーを立ち上がる方法
+まずはRailsをインストールしてください。
+参考: https://gorails.com/setup/osx/11-big-sur
+
+```cd server```
+
+```bundle install```
+
+```rails server```
+
 ## Credits
 
 KanjiToFurigana は次の サービス に依存しています。
