@@ -1,9 +1,7 @@
 Rails.application.routes.draw do
   namespace 'api' do
-    namespace 'v1' do
-      get '/words/:word/vietnamese', to: "words#vietnamese_search", as: "vietnamese"
-      get '/words/:word/english', to: "words#english_search", as: "english"
-      get '/words/:word/furigana', to: "words#kanji_to_furigana", as: "furigana"
-    end
+    get '/vietnamese/:word', to: "vietnamese_search#index", as: "vietnamese"
+    get '/english/:word', to: "english_search#index", as: "english"
+    get '/furigana/:word', to: "kanji_to_furigana#index", as: "furigana"
   end
 end
