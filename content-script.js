@@ -38,7 +38,7 @@ function renderButtonTranslator(selectionTextRange, selectionText, left, top) {
     buttonWrapper.addEventListener('click', () => {
       if (selectionText.length > 0) {
         fetch(
-          `https://kanjitofurigana.tk/api/v1/words/${selectionText}/vietnamese`,
+          `https://kanjitofurigana.tk/api/vietnamese/${selectionText}`,
         )
           .then((res) => res.json())
           .then((json) => {
@@ -351,7 +351,7 @@ function renderVocabularyMeanings(element) {
 
 async function getKanjiMeanings(kanji) {
   const result = await fetch(
-    `https://kanjitofurigana.tk/api/v1/words/${kanji}/english`,
+    `https://kanjitofurigana.tk/api/english/${kanji}`,
   );
   return result.json();
 }
