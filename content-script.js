@@ -191,7 +191,7 @@ function renderKanjiContent(dumpElement, kanji, kanjiNumber) {
   const status = kanjiNumber === 0 ? 'active' : '';
   const html = `
     <div id="${kanji}" class="kanji_content ${status}">
-      <div id="draw-${kanji}" class="draw ${status}"></div>
+      <div id="draw-${kanji}" class="draw"></div>
       <div class="kanji_chinese_meaning">${chineseVietnameseMeaning
     .split(kanji)[1]
     .slice(3)}</div>
@@ -218,6 +218,11 @@ function handlingTabs() {
   const contents = document.querySelectorAll('.selection_bubble_content');
   tabs.addEventListener('click', (e) => {
     if (e.target && e.target.nodeName === 'DIV') {
+      const tabId = e.target.dataset.tab;
+      const activeTab = document.getElementById(tabId);
+      if (!activeTab) {
+        return;
+      }
       for (let i = 0; i < tab.length; i += 1) {
         tab[i].classList.remove('tab_active');
       }
@@ -225,8 +230,7 @@ function handlingTabs() {
       for (let i = 0; i < contents.length; i += 1) {
         contents[i].classList.remove('active');
       }
-      const tabId = e.target.dataset.tab;
-      document.getElementById(tabId).classList.toggle('active');
+      activeTab.classList.toggle('active');
     }
   });
 }
@@ -234,10 +238,9 @@ function handlingTabs() {
 function handlingMultipleKanjis(dumpElement, kanjis) {
   const tabs = document.querySelector('.kanji_entry');
   tabs.addEventListener('click', (e) => {
-    if (e.target && e.target.nodeName === 'DIV') {
+    if (e.target && e.target.nodeName === 'DIV' && e.target.className === 'kanji_searched_pl') {
       const tab = document.querySelectorAll('div.kanji_searched_pl');
       let contents = document.querySelectorAll('.kanji_content');
-      const draws = document.querySelectorAll('div.draw');
       // eslint-disable-next-line no-unused-vars, no-undef
       const firstHandwriting = new Dmak(kanji, {
         element: `draw-${kanjis.split('')[0]}`,
@@ -249,41 +252,43 @@ function handlingMultipleKanjis(dumpElement, kanjis) {
       for (let i = 0; i < contents.length; i += 1) {
         contents[i].classList.remove('active');
       }
-      for (let i = 0; i < draws.length; i += 1) {
-        draws[i].classList.remove('active');
-      }
       const tabId = e.target.dataset.tab;
-      document.getElementById(tabId).classList.toggle('active');
-      document.getElementById(`draw-${tabId}`).classList.toggle('active');
+      const activeTab = document.getElementById(tabId);
       // eslint-disable-next-line no-unused-vars, no-undef
       const secondHandwriting = new Dmak(kanji, {
         element: `draw-${tabId}`,
       });
       const currentKanji = document.querySelector(
         '.kanji_searched_pl.active',
-      ).innerHTML;
-      resetPagination();
-      if (globalLanguage === 'jv') {
-        const result = getSelectedTextNode().toString();
+      );
+      if (globalLanguage === 'jv' && currentKanji) {
+        const currentKanjiContent = currentKanji.innerHTML;
         document.getElementById(
           'kanji_meanings',
-        ).innerHTML = `${renderKanjiContent(dumpElement, currentKanji, result.indexOf(currentKanji))}`;
+        ).innerHTML = `${resultVocabulary.split('').map((kanji, i) => renderKanjiContent(dumpElement, kanji, i)).join('')}`;
+        if (activeTab) {
+          document.getElementById(tabId).classList.toggle('active');
+        }
         contents = document.querySelectorAll('.kanji_content');
         for (let i = 0; i < contents.length; i += 1) {
           contents[i].classList.remove('active');
         }
-        document.querySelector(`#${currentKanji}`).classList.toggle('active');
-      } else if (globalLanguage === 'je') {
-        getKanjiMeanings(currentKanji).then((json) => {
+        document.querySelector(`#${currentKanjiContent}`).classList.toggle('active');
+      } else if (globalLanguage === 'je' && currentKanji) {
+        const currentKanjiContent = currentKanji.innerHTML;
+        getKanjiMeanings(currentKanjiContent).then((json) => {
+          if (activeTab) {
+            document.getElementById(tabId).classList.toggle('active');
+          }
           document.querySelector(
-            `#${currentKanji} > .kanji_chinese_meaning`,
+            `#${currentKanjiContent} > .kanji_chinese_meaning`,
           ).innerHTML = json.heisig_en.toUpperCase();
-          const currentKanjiComponent = document.querySelector(`#${currentKanji} > .component`);
+          const currentKanjiComponent = document.querySelector(`#${currentKanjiContent} > .component`);
           if (currentKanjiComponent) {
             currentKanjiComponent.remove();
           }
           document.querySelector(
-            `#${currentKanji} > #kanji_mean_group`,
+            `#${currentKanjiContent} > #kanji_mean_group`,
           ).innerHTML = `Meaning: ${json.meanings
             .map((meaning) => `<div class="vocabulary_meaning">${meaning}</div>`)
             .join('')}`;
@@ -409,8 +414,3 @@ chrome.runtime.onMessage.addListener((request) => {
   );
   document.body.outerHTML = webStr;
 });
-
-function resetPagination() {
-  const paginationElement = document.getElementsByClassName('pagination');
-  if (paginationElement && paginationElement[0]) paginationElement[0].innerHTML = '';
-}

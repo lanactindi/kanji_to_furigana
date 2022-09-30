@@ -44,28 +44,6 @@
     padding: 12px;
     border-radius: 0px 3px 3px;
 }
-.comment_section_content{
-    display: none;
-    position: relative;
-    background-color: rgb(238, 238, 238);
-    border-width: 1px;
-    border-style: solid;
-    border-color: rgb(212, 213, 214);
-    border-image: initial;
-    padding: 12px;
-    border-radius: 0px 3px 3px;
-}
-.comment_section_content.active {
-    display: block;
-    position: relative;
-    background-color: rgb(238, 238, 238);
-    border-width: 1px;
-    border-style: solid;
-    border-color: rgb(212, 213, 214);
-    border-image: initial;
-    padding: 12px;
-    border-radius: 0px 3px 3px;
-}
 div#dic_bubble_synonyms {
     padding-bottom: 40px;
 }
@@ -165,86 +143,7 @@ div#dic_bubble_synonyms {
 .kanji_content {
     display: none;
 }
-.draw.active{
-    display: block;
-    float: right;
-}
 .draw{
-    display: none;
-}
-button#vocabulary_comment.active{
+    display: block;
     float: right;
-    color: blue;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    display: block;
-}
-button#kanji_comment.active{
-    float: right;
-    color: blue;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    display: block;
-}
-#vocabulary_comment, #kanji_comment{
-    display: none;
-}
-#comment_input{
-    width: 100%;
-    height: 50px;
-}
-#comment_section_part{
-    text-align: center;
-}
-#comments_list > li {
-    border-bottom: 1px solid black;
-}
-#comments_list > li > span{
-    font-weight: bold;
-}
-.popup_comment {
-    box-shadow: rgba(41, 41, 41, 0.32) 2px 2px 4px 4px;
-    line-height: 24px;
-    border-radius: 5px;
-    z-index: 99999;
-    background-color: rgb(253, 253, 253);
-    width: 500px;
-    color: black;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 14px;
-    line-height: normal;
-    box-shadow: rgba(41, 41, 41, 0.32) 2px 2px 4px 4px;
-    border-radius: 2px;
-    padding: 5px;
-    border-width: 1px;
-    border-style: solid;
-    border-color: rgb(181, 181, 181);
-    border-image: initial;
-}
-.popup_comment {
-    display: none;
-}
-.popup_comment.active{
-    display: block;
-}
-.pagination li {
-    display:inline-block;
-    padding:10px;
-}
-li > .username{
-    display: inline-block;
-}
-li > .comment_content{
-    display: inline-block;
-}
-.vocabulary_comment_btn, .kanji_comment_btn{
-    display: none;
-}
-.kanji_comment_btn.active{
-    display: block;
-}
-.vocabulary_comment_btn.active{
-    display: block;
 }
