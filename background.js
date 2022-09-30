@@ -7,7 +7,7 @@ chrome.contextMenus.create({
 chrome.contextMenus.onClicked.addListener(async (clickData) => {
   if (clickData.menuItemId === 'KanjiToFurigana' && clickData.selectionText) {
     const result = await fetch(
-      `https://kanjitofurigana.tk/api/v1/words/${clickData.selectionText}/furigana`,
+      `https://kanjitofurigana.tk/api/furigana/${clickData.selectionText}`,
     );
     result.json().then((json) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
