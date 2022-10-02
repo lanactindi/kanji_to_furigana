@@ -12,7 +12,6 @@ gem 'rails', '~> 7.0.3', '>= 7.0.3.1'
 gem 'mysql2', '~> 0.5'
 
 # Use the Puma web server [https://github.com/puma/puma]
-gem 'httparty'
 gem 'puma', '~> 5.0'
 gem 'tataki'
 gem 'uri'
@@ -46,11 +45,12 @@ group :development, :test do
   gem 'debug', platforms: %i[mri mingw x64_mingw]
   gem 'rubocop-rspec'
   gem 'webmock'
+  gem 'rspec-rails'
 end
+
 gem 'addressable', '~> 2.8', '>= 2.8.1'
 gem 'open-uri'
 gem 'rack-cors'
-gem 'rspec-rails'
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"

@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require 'uri'
-require 'net/http'
-require 'addressable'
-
 class API::VietnameseSearchController < ApplicationController
   before_action :check_params, :load_vietnamese_uri, :render_response, only: :index
 

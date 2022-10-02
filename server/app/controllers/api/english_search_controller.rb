@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require 'uri'
-require 'net/http'
-require 'addressable'
-require 'cgi'
-
 class API::EnglishSearchController < ApplicationController
   before_action :check_params, :load_english_uri, :render_response, only: :index
   
