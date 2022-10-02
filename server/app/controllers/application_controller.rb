@@ -6,7 +6,7 @@ class ApplicationController < ActionController::API
   
   def check_params
     @word = params[:word]
-    return unless @word
+    return render json: { error: 'Please choose a word.'}, status: 422 if @word.blank?
   end
   
   def render_response
