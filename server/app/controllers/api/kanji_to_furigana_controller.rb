@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'tataki'
-
 class API::KanjiToFuriganaController < ApplicationController
   before_action :check_params, only: :index
 
