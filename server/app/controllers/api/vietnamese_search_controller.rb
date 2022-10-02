@@ -3,7 +3,7 @@
 class API::VietnameseSearchController < ApplicationController
   before_action :check_params, :load_vietnamese_uri, :render_response, only: :index
 
-  def index;end
+  def index; end
 
   private
 

@@ -61,15 +61,15 @@ function renderButtonTranslator(selectionTextRange, selectionText, left, top) {
               throw new Error(`Cannot find ${selectionText} meaning`);
             }
           })
-          .catch(() => {
-            renderErrorResult(selectionText, left, top);
+          .catch((error) => {
+            renderErrorResult(error, left, top);
           });
       }
     });
   }
 }
 
-function renderErrorResult(selectionText, left, top) {
+function renderErrorResult(error, left, top) {
   const buttonResult = document.createElement('div');
   buttonResult.id = 'kanji-to-furigana-result';
   const buttonContainer = document.createElement('div');
@@ -77,7 +77,7 @@ function renderErrorResult(selectionText, left, top) {
   buttonContainer.innerHTML = `
   <div class="popup_rect">
     <div id="popup_tabs">
-      Cannot find ${selectionText} meaning
+      ${error}
     </div>
   </div>
   `;
