@@ -18,6 +18,9 @@
       "css": ["popup.css"]
     }
   ],
+  "icons": {
+    "128": "kanjitofurigana.png"
+  },
   "web_accessible_resources": [
     {
       "matches": ["<all_urls>"],
