@@ -1,7 +1,6 @@
 .popup_rect {
     box-shadow: rgba(41, 41, 41, 0.32) 2px 2px 4px 4px;
     line-height: 24px;
-    border-radius: 5px;
     z-index: 99999;
     background-color: rgb(253, 253, 253);
     width: 500px;
@@ -10,7 +9,6 @@
     font-size: 14px;
     line-height: normal;
     box-shadow: rgba(41, 41, 41, 0.32) 2px 2px 4px 4px;
-    border-radius: 2px;
     padding: 5px;
     border-width: 1px;
     border-style: solid;
@@ -30,7 +28,6 @@
     border-color: rgb(212, 213, 214);
     border-image: initial;
     padding: 12px;
-    border-radius: 0px 3px 3px;
 }
 
 .selection_bubble_content.active {
@@ -42,13 +39,12 @@
     border-color: rgb(212, 213, 214);
     border-image: initial;
     padding: 12px;
-    border-radius: 0px 3px 3px;
 }
 div#dic_bubble_synonyms {
     padding-bottom: 40px;
 }
 .vocabulary_searched_pl {
-    color: red;
+    color: blueviolet;
     font-weight: 500;
     font-size: 18px;
     display: inline;
@@ -82,12 +78,14 @@ div#dic_bubble_synonyms {
     display: list-item;
     list-style-position: inside;
     list-style-type: disc;
-    color: blueviolet;
+    color: black;
     font-weight: 500;
 }
 .tab_vocabulary{
-    border-radius: 3px 0px 0px;
     width: 50%;
+}
+#language_tabs {
+    padding: 8px;
 }
 .tab_type, .language_type {
     display: inline-block;
@@ -114,7 +112,7 @@ div#dic_bubble_synonyms {
     width: 50%;
 }
 .kanji_searched_pl{
-    color: red;
+    color: blueviolet;
     font-weight: 500;
     font-size: 18px;
     display: inline;
